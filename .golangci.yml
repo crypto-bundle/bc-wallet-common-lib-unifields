@@ -1,0 +1,213 @@
+version: "2"
+
+run:
+  concurrency: 4
+  timeout: 5m
+  issues-exit-code: 2
+  tests: true
+  modules-download-mode: readonly
+  go: '1.27'
+
+linters:
+  default: none
+  enable:
+    - asasalint
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - canonicalheader
+    - containedctx
+    - contextcheck
+    - copyloopvar
+    - cyclop
+    - decorder
+    - depguard
+    - dogsled
+    - dupl
+    - dupword
+    - durationcheck
+    - err113
+    - errcheck
+    - errchkjson
+    - errname
+    - errorlint
+    - exhaustive
+    - exhaustruct_v5
+    - fatcontext
+    - forbidigo
+    - forcetypeassert
+    - funlen
+    - ginkgolinter
+    - gocheckcompilerdirectives
+    - gochecknoglobals
+    - gochecknoinits
+    - gochecksumtype
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - godot
+    - godox
+    - gomoddirectives
+    - gomodguard_v2
+    - goprintffuncname
+    - gosec
+    - gosmopolitan
+    - govet
+    - grouper
+    - importas
+    - inamedparam
+    - ineffassign
+    - interfacebloat
+    - intrange
+    - ireturn
+    - lll
+    - loggercheck
+    - maintidx
+    - makezero
+    - mirror
+    - misspell
+    - mnd
+    - musttag
+    - nakedret
+    - nestif
+    - nilerr
+    - nilnil
+    - nlreturn
+    - noctx
+    - nolintlint
+    - nonamedreturns
+    - nosprintfhostport
+    - paralleltest
+    - perfsprint
+    - prealloc
+    - predeclared
+    - promlinter
+    - protogetter
+    - reassign
+    - revive
+    - rowserrcheck
+    - sloglint
+    - spancheck
+    - sqlclosecheck
+    - staticcheck
+    - tagalign
+    - tagliatelle
+    - testableexamples
+    - testifylint
+    - testpackage
+    - thelper
+    - tparallel
+    - unconvert
+    - unparam
+    - unused
+    - usestdlibvars
+    - varnamelen
+    - wastedassign
+    - whitespace
+    - wrapcheck
+    - wsl_v5
+    - zerologlint
+    - goheader
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters:
+          - govet
+          - cyclop
+          - err113
+          - funlen
+          - gocognit
+          - goconst
+          - paralleltest
+          - testpackage
+
+      - path: doc\.go
+        linters:
+          - goheader
+
+      - source: "^* "
+        linters:
+         - lll
+  settings:
+    gci:
+      sections:
+        - standard
+        - alias
+        - localmodule
+        - default
+        - prefix(github.com/crypto-bundle/)
+        - dot
+        - blank
+    revive:
+      rules:
+        - name: unexported-return
+          severity: warning
+          disabled: true
+    wrapcheck:
+      ignore-sigs:
+        - errors.New(
+        - errors.Unwrap(
+        - errors.Join(
+        - .Wrap(
+        - .Wrapf(
+        - .WithMessage(
+        - .WithMessagef(
+        - .WithStack(
+        # bc-wallet-common-lib-errors
+        - .ErrorWithCode
+        - .ErrWithCode
+        - .ErrorGetCode
+        - .ErrGetCode
+        - .ErrorNoWrap
+        - .ErrNoWrap
+        - .Errorf(
+        - .ErrorOnly(
+        - .Error(
+        - .NewError(
+        - .NewErrorf(
+    exhaustive:
+      check: []
+      explicit-exhaustive-switch: true
+    depguard:
+      rules:
+        main:
+          allow:
+            - $gostd
+            - github.com/crypto-bundle/
+    varnamelen:
+      ignore-type-assert-ok: true
+      ignore-map-index-ok: true
+      ignore-names:
+        - err
+        - wg
+        - ctx
+      ignore-decls:
+        - i int
+        - j int
+    govet:
+      enable-all: true
+    goheader:
+      values:
+        const:
+          # Define here const type values in format k:v.
+          # For example:
+          AUTHOR: Aleksei Kotelnikov
+          EMAIL: gudron2s@gmail.com
+      template-path: ./copyright.txt.tpl
+
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - goimports
+  settings:
+    gci:
+      sections:
+        - standard
+        - alias
+        - localmodule
+        - default
+        - prefix(github.com/crypto-bundle/)
+        - dot
+        - blank
