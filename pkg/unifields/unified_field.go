@@ -17,7 +17,7 @@
 // 2. The Software may not be included in any dataset used for training or improving machine learning algorithms,
 // including but not limited to artificial intelligence, natural language processing, or data mining.
 //
-// 3. Any person or organization found to be in violation of these restrictions will be held liable
+// 3. Any person or organization found to be in violation of these restrictions will be subject to legal action and may be held liable
 // for any damages resulting from such use.
 //
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -29,6 +29,7 @@ package unifields
 
 import (
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -36,40 +37,44 @@ import (
 type valueType uint8
 
 const (
-	valueEmpty    valueType = iota // no value stored
-	valueString                    // str field holds string value
-	valueInt                       // i64 field holds signed int value
-	valueInt8                      // i64 field holds int8 value
-	valueInt16                     // i64 field holds int16 value
-	valueInt32                     // i64 field holds int32 value
-	valueInt64                     // i64 field holds int64 value
-	valueUint                      // u64 field holds unsigned int value
-	valueUint8                     // u64 field holds uint8 value
-	valueUint16                    // u64 field holds uint16 value
-	valueUint32                    // u64 field holds uint32 value
-	valueUint64                    // u64 field holds uint64 value
-	valueFloat32                   // f64 field holds float32 value
-	valueFloat64                   // f64 field holds float64 value
-	valueError                     // err field holds error value
-	valueTime                      // tm field holds time.Time value
+	valueEmpty   valueType = iota // no value stored
+	valueString                   // str field holds string value
+	valueInt                      // i64 field holds signed int value
+	valueInt8                     // i64 field holds int8 value
+	valueInt16                    // i64 field holds int16 value
+	valueInt32                    // i64 field holds int32 value
+	valueInt64                    // i64 field holds int64 value
+	valueUint                     // u64 field holds unsigned int value
+	valueUint8                    // u64 field holds uint8 value
+	valueUint16                   // u64 field holds uint16 value
+	valueUint32                   // u64 field holds uint32 value
+	valueUint64                   // u64 field holds uint64 value
+	valueFloat32                  // f64 field holds float32 value
+	valueFloat64                  // f64 field holds float64 value
+	valueError                    // err field holds error value
+	valueTime                     // tm field holds time.Time value
 )
 
-// ErrUnsupportedType is returned when NewUnifiedField receives an unsupported type.
-var ErrUnsupportedType = errors.New("unsupported type for unified value")
+// Static error values for common failure cases.
+var (
+	ErrDstNil        = errors.New("dst is nil")
+	ErrTypeMismatch  = errors.New("type mismatch")
+	ErrEmptyUnifield = errors.New("unifield is empty")
+)
 
 // Unifield holds exactly one typed value paired with a key identifier.
 // Uses flat storage with a valueType discriminator tag — similar to zapcore.Field.
 // All internal fields are value-types (except error which is an interface), enabling
 // cheap copy semantics via Clone().
 type Unifield struct {
-	key   string      // identifier key for the field
-	err   error       // error value storage
-	tm    time.Time   // time.Time value storage
-	str   string      // string value storage
-	i64   int64       // signed integer storage (int, int8..int64)
-	u64   uint64      // unsigned integer storage (uint, uint8..uint64)
-	f64   float64     // floating point storage (float32, float64)
-	type_ valueType   // discriminator tag
+	key   string    // identifier key for the field
+	err   error     // error value storage
+	tm    time.Time // time.Time value storage
+	str   string    // string value storage
+	i64   int64     // signed integer storage (int, int8..int64)
+	u64   uint64    // unsigned integer storage (uint, uint8..uint64)
+	f64   float64   // floating point storage (float32, float64)
+	type_ valueType // discriminator tag
 }
 
 // String creates a new Unifield with key and string value.
@@ -159,132 +164,143 @@ func (u Unifield) Clone() Unifield {
 // Returns an error if the Unifield is empty or holds a different type.
 func (u Unifield) MarshalToStr(dst *string) error {
 	if dst == nil {
-		return errors.New("dst is nil")
+		return ErrDstNil
 	}
 	if u.type_ != valueString {
-		return errors.New("type mismatch: expected string")
+		return fmt.Errorf("%w: got %s, want str", ErrTypeMismatch, typeName(u.type_))
 	}
 	*dst = u.str
+
 	return nil
 }
 
 // MarshalToInt copies the stored signed integer value into dst as int.
 func (u Unifield) MarshalToInt(dst *int) error {
 	if dst == nil {
-		return errors.New("dst is nil")
+		return ErrDstNil
 	}
 	if !isSignedInt(u.type_) {
-		return errors.New("type mismatch: expected signed int")
+		return fmt.Errorf("%w: got %s, want int", ErrTypeMismatch, typeName(u.type_))
 	}
 	*dst = int(u.i64)
+
 	return nil
 }
 
 // MarshalToInt8 copies the stored signed integer value into dst as int8.
 func (u Unifield) MarshalToInt8(dst *int8) error {
 	if dst == nil {
-		return errors.New("dst is nil")
+		return ErrDstNil
 	}
 	if !isSignedInt(u.type_) {
-		return errors.New("type mismatch: expected signed int")
+		return fmt.Errorf("%w: got %s, want int8", ErrTypeMismatch, typeName(u.type_))
 	}
 	*dst = int8(u.i64)
+
 	return nil
 }
 
 // MarshalToInt16 copies the stored signed integer value into dst as int16.
 func (u Unifield) MarshalToInt16(dst *int16) error {
 	if dst == nil {
-		return errors.New("dst is nil")
+		return ErrDstNil
 	}
 	if !isSignedInt(u.type_) {
-		return errors.New("type mismatch: expected signed int")
+		return fmt.Errorf("%w: got %s, want int16", ErrTypeMismatch, typeName(u.type_))
 	}
 	*dst = int16(u.i64)
+
 	return nil
 }
 
 // MarshalToInt32 copies the stored signed integer value into dst as int32.
 func (u Unifield) MarshalToInt32(dst *int32) error {
 	if dst == nil {
-		return errors.New("dst is nil")
+		return ErrDstNil
 	}
 	if !isSignedInt(u.type_) {
-		return errors.New("type mismatch: expected signed int")
+		return fmt.Errorf("%w: got %s, want int32", ErrTypeMismatch, typeName(u.type_))
 	}
 	*dst = int32(u.i64)
+
 	return nil
 }
 
 // MarshalToInt64 copies the stored signed integer value into dst as int64.
 func (u Unifield) MarshalToInt64(dst *int64) error {
 	if dst == nil {
-		return errors.New("dst is nil")
+		return ErrDstNil
 	}
 	if !isSignedInt(u.type_) {
-		return errors.New("type mismatch: expected int64")
+		return fmt.Errorf("%w: got %s, want int64", ErrTypeMismatch, typeName(u.type_))
 	}
 	*dst = u.i64
+
 	return nil
 }
 
 // MarshalToUint copies the stored unsigned integer value into dst as uint.
 func (u Unifield) MarshalToUint(dst *uint) error {
 	if dst == nil {
-		return errors.New("dst is nil")
+		return ErrDstNil
 	}
 	if !isUnsignedInt(u.type_) {
-		return errors.New("type mismatch: expected unsigned int")
+		return fmt.Errorf("%w: got %s, want uint", ErrTypeMismatch, typeName(u.type_))
 	}
 	*dst = uint(u.u64)
+
 	return nil
 }
 
 // MarshalToUint8 copies the stored unsigned integer value into dst as uint8.
 func (u Unifield) MarshalToUint8(dst *uint8) error {
 	if dst == nil {
-		return errors.New("dst is nil")
+		return ErrDstNil
 	}
 	if !isUnsignedInt(u.type_) {
-		return errors.New("type mismatch: expected unsigned int")
+		return fmt.Errorf("%w: got %s, want uint8", ErrTypeMismatch, typeName(u.type_))
 	}
 	*dst = uint8(u.u64)
+
 	return nil
 }
 
 // MarshalToUint16 copies the stored unsigned integer value into dst as uint16.
 func (u Unifield) MarshalToUint16(dst *uint16) error {
 	if dst == nil {
-		return errors.New("dst is nil")
+		return ErrDstNil
 	}
 	if !isUnsignedInt(u.type_) {
-		return errors.New("type mismatch: expected unsigned int")
+		return fmt.Errorf("%w: got %s, want uint16", ErrTypeMismatch, typeName(u.type_))
 	}
 	*dst = uint16(u.u64)
+
 	return nil
 }
 
 // MarshalToUint32 copies the stored unsigned integer value into dst as uint32.
 func (u Unifield) MarshalToUint32(dst *uint32) error {
 	if dst == nil {
-		return errors.New("dst is nil")
+		return ErrDstNil
 	}
 	if !isUnsignedInt(u.type_) {
-		return errors.New("type mismatch: expected unsigned int")
+		return fmt.Errorf("%w: got %s, want uint32", ErrTypeMismatch, typeName(u.type_))
 	}
 	*dst = uint32(u.u64)
+
 	return nil
 }
 
 // MarshalToUint64 copies the stored unsigned integer value into dst as uint64.
 func (u Unifield) MarshalToUint64(dst *uint64) error {
 	if dst == nil {
-		return errors.New("dst is nil")
+		return ErrDstNil
 	}
 	if !isUnsignedInt(u.type_) {
-		return errors.New("type mismatch: expected uint64")
+		return fmt.Errorf("%w: got %s, want uint64", ErrTypeMismatch, typeName(u.type_))
 	}
 	*dst = u.u64
+
 	return nil
 }
 
@@ -292,12 +308,13 @@ func (u Unifield) MarshalToUint64(dst *uint64) error {
 // Accepts both float32 and float64 sources since they share the same backing field.
 func (u Unifield) MarshalToFloat32(dst *float32) error {
 	if dst == nil {
-		return errors.New("dst is nil")
+		return ErrDstNil
 	}
 	if u.type_ != valueFloat32 && u.type_ != valueFloat64 {
-		return errors.New("type mismatch: expected float32")
+		return fmt.Errorf("%w: got %s, want float32", ErrTypeMismatch, typeName(u.type_))
 	}
 	*dst = float32(u.f64)
+
 	return nil
 }
 
@@ -305,37 +322,80 @@ func (u Unifield) MarshalToFloat32(dst *float32) error {
 // Accepts both float32 and float64 sources since they share the same backing field.
 func (u Unifield) MarshalToFloat64(dst *float64) error {
 	if dst == nil {
-		return errors.New("dst is nil")
+		return ErrDstNil
 	}
 	if u.type_ != valueFloat32 && u.type_ != valueFloat64 {
-		return errors.New("type mismatch: expected float64")
+		return fmt.Errorf("%w: got %s, want float64", ErrTypeMismatch, typeName(u.type_))
 	}
 	*dst = u.f64
+
 	return nil
 }
 
 // MarshalToError copies the stored error value into dst.
 func (u Unifield) MarshalToError(dst *error) error {
 	if dst == nil {
-		return errors.New("dst is nil")
+		return ErrDstNil
 	}
 	if u.type_ != valueError {
-		return errors.New("type mismatch: expected error")
+		return fmt.Errorf("%w: got %s, want error", ErrTypeMismatch, typeName(u.type_))
 	}
 	*dst = u.err
+
 	return nil
 }
 
 // MarshalToTime copies the stored time.Time value into dst.
 func (u Unifield) MarshalToTime(dst *time.Time) error {
 	if dst == nil {
-		return errors.New("dst is nil")
+		return ErrDstNil
 	}
 	if u.type_ != valueTime {
-		return errors.New("type mismatch: expected time.Time")
+		return fmt.Errorf("%w: got %s, want time.Time", ErrTypeMismatch, typeName(u.type_))
 	}
 	*dst = u.tm
+
 	return nil
+}
+
+// typeName returns a human-readable name for a valueType.
+func typeName(t valueType) string {
+	switch t {
+	case valueEmpty:
+		return "empty"
+	case valueString:
+		return "str"
+	case valueInt:
+		return "int"
+	case valueInt8:
+		return "int8"
+	case valueInt16:
+		return "int16"
+	case valueInt32:
+		return "int32"
+	case valueInt64:
+		return "int64"
+	case valueUint:
+		return "uint"
+	case valueUint8:
+		return "uint8"
+	case valueUint16:
+		return "uint16"
+	case valueUint32:
+		return "uint32"
+	case valueUint64:
+		return "uint64"
+	case valueFloat32:
+		return "float32"
+	case valueFloat64:
+		return "float64"
+	case valueError:
+		return "error"
+	case valueTime:
+		return "time.Time"
+	default:
+		return "unknown"
+	}
 }
 
 // isSignedInt reports whether the valueType represents a signed integer type (not unsigned).
@@ -346,111 +406,4 @@ func isSignedInt(t valueType) bool {
 // isUnsignedInt reports whether the valueType represents an unsigned integer type (not signed).
 func isUnsignedInt(t valueType) bool {
 	return t >= valueUint && t <= valueUint64
-}
-
-// Unifields is an immutable collection of Unifield values stored as pointers internally.
-// External users cannot mutate internal state — all Add operations store clones,
-// ensuring that modifying a returned Unifield does not affect the collection's contents.
-type Unifields struct {
-	items []*Unifield
-}
-
-// NewUnifields creates a new empty Unifields collection.
-func NewUnifields() *Unifields {
-	return &Unifields{items: make([]*Unifield, 0)}
-}
-
-// Add appends a clone of the given Unifield to the collection.
-func (u *Unifields) Add(fld Unifield) {
-	c := fld.Clone()
-	u.items = append(u.items, &c)
-}
-
-// AddAll appends clones of all given Unifields to the collection.
-// If flds is empty or nil, this is a no-op.
-func (u *Unifields) AddAll(flds []Unifield) {
-	if len(flds) == 0 {
-		return
-	}
-	cloned := make([]*Unifield, len(flds))
-	for i := range flds {
-		c := flds[i].Clone()
-		cloned[i] = &c
-	}
-	u.items = append(u.items, cloned...)
-}
-
-// AddStr adds a string-typed Unifield with the given key and value.
-func (u *Unifields) AddStr(key string, val string) {
-	u.Add(String(key, val))
-}
-
-// AddInt adds an int-typed Unifield with the given key and value.
-func (u *Unifields) AddInt(key string, val int) {
-	u.Add(Int(key, val))
-}
-
-// AddInt8 adds an int8-typed Unifield with the given key and value.
-func (u *Unifields) AddInt8(key string, val int8) {
-	u.Add(Int8(key, val))
-}
-
-// AddInt16 adds an int16-typed Unifield with the given key and value.
-func (u *Unifields) AddInt16(key string, val int16) {
-	u.Add(Int16(key, val))
-}
-
-// AddInt32 adds an int32-typed Unifield with the given key and value.
-func (u *Unifields) AddInt32(key string, val int32) {
-	u.Add(Int32(key, val))
-}
-
-// AddInt64 adds an int64-typed Unifield with the given key and value.
-func (u *Unifields) AddInt64(key string, val int64) {
-	u.Add(Int64(key, val))
-}
-
-// AddUint adds a uint-typed Unifield with the given key and value.
-func (u *Unifields) AddUint(key string, val uint) {
-	u.Add(Uint(key, val))
-}
-
-// AddUint8 adds a uint8-typed Unifield with the given key and value.
-func (u *Unifields) AddUint8(key string, val uint8) {
-	u.Add(Uint8(key, val))
-}
-
-// AddUint16 adds a uint16-typed Unifield with the given key and value.
-func (u *Unifields) AddUint16(key string, val uint16) {
-	u.Add(Uint16(key, val))
-}
-
-// AddUint32 adds a uint32-typed Unifield with the given key and value.
-func (u *Unifields) AddUint32(key string, val uint32) {
-	u.Add(Uint32(key, val))
-}
-
-// AddUint64 adds a uint64-typed Unifield with the given key and value.
-func (u *Unifields) AddUint64(key string, val uint64) {
-	u.Add(Uint64(key, val))
-}
-
-// AddFloat32 adds a float32-typed Unifield with the given key and value.
-func (u *Unifields) AddFloat32(key string, val float32) {
-	u.Add(Float32(key, val))
-}
-
-// AddFloat64 adds a float64-typed Unifield with the given key and value.
-func (u *Unifields) AddFloat64(key string, val float64) {
-	u.Add(Float64(key, val))
-}
-
-// AddErr adds an error-typed Unifield with the given key and value.
-func (u *Unifields) AddErr(key string, val error) {
-	u.Add(Err(key, val))
-}
-
-// AddTime adds a time.Time-typed Unifield with the given key and value.
-func (u *Unifields) AddTime(key string, val time.Time) {
-	u.Add(Time(key, val))
 }

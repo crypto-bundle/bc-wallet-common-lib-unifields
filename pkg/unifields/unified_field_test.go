@@ -238,7 +238,7 @@ func TestErrField(t *testing.T) {
 	if err := f.MarshalToError(&got); err != nil {
 		t.Fatalf("MarshalToError failed: %v", err)
 	}
-	if got != errTest {
+	if !errors.Is(got, errTest) {
 		t.Errorf("got %v, want %v", got, errTest)
 	}
 }
@@ -389,21 +389,22 @@ func TestKeyPreserved(t *testing.T) {
 }
 
 func TestZeroValues(t *testing.T) {
-	String("k", "")
-	Int("k", 0)
-	Int8("k", 0)
-	Int16("k", 0)
-	Int32("k", 0)
-	Int64("k", 0)
-	Uint("k", 0)
-	Uint8("k", 0)
-	Uint16("k", 0)
-	Uint32("k", 0)
-	Uint64("k", 0)
-	Float32("k", 0)
-	Float64("k", 0)
-	Err("k", nil)
-	Time("k", time.Time{})
+	var _ Unifield
+	_ = String("k", "")
+	_ = Int("k", 0)
+	_ = Int8("k", 0)
+	_ = Int16("k", 0)
+	_ = Int32("k", 0)
+	_ = Int64("k", 0)
+	_ = Uint("k", 0)
+	_ = Uint8("k", 0)
+	_ = Uint16("k", 0)
+	_ = Uint32("k", 0)
+	_ = Uint64("k", 0)
+	_ = Float32("k", 0)
+	_ = Float64("k", 0)
+	_ = Err("k", nil)
+	_ = Time("k", time.Time{})
 }
 
 func absFloat(x float64) float64 {
@@ -412,115 +413,3 @@ func absFloat(x float64) float64 {
 	}
 	return x
 }
-
-// --- Tests for Unifields collection ---
-
-func TestNewUnifields(t *testing.T) {
-	u := NewUnifields()
-	if u == nil {
-		t.Fatal("NewUnifields returned nil")
-	}
-	if len(u.items) != 0 {
-		t.Errorf("expected empty items slice, got length %d", len(u.items))
-	}
-}
-
-func TestUnifieldsAdd(t *testing.T) {
-	u := NewUnifields()
-	f := Int("counter", 42)
-	u.Add(f)
-	if len(u.items) != 1 {
-		t.Errorf("expected 1 item, got %d", len(u.items))
-	}
-	// Verify value preserved through clone
-	var got int
-	if err := u.items[0].MarshalToInt(&got); err != nil {
-		t.Fatalf("MarshalToInt failed: %v", err)
-	}
-	if got != 42 {
-		t.Errorf("got %d, want 42", got)
-	}
-}
-
-func TestUnifieldsAddImmutability(t *testing.T) {
-	u := NewUnifields()
-	f := String("msg", "hello")
-	u.Add(f)
-	// Mutate original — collection should be unaffected
-	f.key = "modified"
-	f.str = "world"
-	if u.items[0].key != "msg" || u.items[0].str != "hello" {
-		t.Error("collection was mutated by modifying original")
-	}
-}
-
-func TestUnifieldsAddAll(t *testing.T) {
-	u := NewUnifields()
-	u.Add(Int("a", 1))
-	u.AddStr("b", "two")
-	u.AddInt64("c", 3)
-	u.AddAll([]Unifield{Uint("d", 4), Err("e", errTest)})
-	if len(u.items) != 5 {
-		t.Errorf("expected 5 items, got %d", len(u.items))
-	}
-}
-
-func TestUnifieldsAddAllNilEmpty(t *testing.T) {
-	u := NewUnifields()
-	initLen := len(u.items)
-	u.AddAll(nil)
-	if len(u.items) != initLen {
-		t.Error("AddAll(nil) should be no-op")
-	}
-	u.AddAll([]Unifield{})
-	if len(u.items) != initLen {
-		t.Error("AddAll([]) should be no-op")
-	}
-}
-
-func TestUnifieldsAddTyped(t *testing.T) {
-	u := NewUnifields()
-	u.AddStr("k", "v")
-	u.AddInt("cnt", 99)
-	u.AddInt8("b", 7)
-	u.AddInt16("s", 1234)
-	u.AddInt32("i", 55555)
-	u.AddInt64("l", 999999)
-	u.AddUint("u", 42)
-	u.AddUint8("ub", 200)
-	u.AddUint16("us", 30000)
-	u.AddUint32("ui", 200000)
-	u.AddUint64("ul", 5000000)
-	u.AddFloat32("f32", 1.5)
-	u.AddFloat64("f64", 2.718)
-	u.AddErr("err", errTest)
-	u.AddTime("now", time.Now())
-	if len(u.items) != 15 {
-		t.Errorf("expected 15 items, got %d", len(u.items))
-	}
-}
-
-func TestUnifieldsPreservesKeys(t *testing.T) {
-	u := NewUnifields()
-	f := Int64("my_key", 123)
-	u.Add(f)
-	if u.items[0].key != "my_key" {
-		t.Errorf("expected key 'my_key', got %q", u.items[0].key)
-	}
-}
-
-func TestUnifieldsCloneSeparation(t *testing.T) {
-	u := NewUnifields()
-	u.AddStr("original", "value")
-	// Create another unifield with same content
-	f2 := String("original", "changed")
-	u.Add(f2)
-	// They should be independent copies
-	f3 := u.items[0].Clone()
-	f3.str = "independent"
-	// Original in collection should be unchanged
-	if u.items[0].str != "value" {
-		t.Error("collection item was affected by external clone mutation")
-	}
-}
-
