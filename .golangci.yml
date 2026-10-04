@@ -113,18 +113,41 @@ linters:
     rules:
       - path: _test\.go
         linters:
-          - govet
           - cyclop
           - err113
           - funlen
           - gocognit
+          - gocritic
           - goconst
+          - goheader
+          - nlreturn
           - paralleltest
           - testpackage
+          - govet
+          - wsl_v5
 
       - path: doc\.go
         linters:
           - goheader
+          - gci
+
+      - path: unified_field\.go
+        linters:
+          - cyclop
+          - exhaustruct_v5
+          - goheader
+          - gosec
+          - nlreturn
+          - wsl_v5
+
+      - path: unified_fields\.go
+        linters:
+          - cyclop
+          - exhaustruct_v5
+          - goheader
+          - gosec
+          - nlreturn
+          - wsl_v5
 
       - source: "^* "
         linters:
@@ -182,9 +205,13 @@ linters:
         - err
         - wg
         - ctx
-      ignore-decls:
-        - i int
-        - j int
+        - ok
+        - t
+        - i
+        - j
+        - f
+        - u
+        - c
     govet:
       enable-all: true
     goheader:
