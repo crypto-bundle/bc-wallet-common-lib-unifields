@@ -1,5 +1,14 @@
 # Change Log
 
+## [v0.0.2] — 2026-10-04
+
+### Added
+
+- Pointer-based value storage variant — trades per-item heap allocation for zero-cost empty slots in collections
+- Expanded error handling — nil destination, type mismatch, and empty storage access all return clear errors
+- Benchmarks for all operations measuring speed and memory usage
+- Full godoc coverage on every exported method, AI-agent reference guide, updated README with both variants compared
+
 ## [v0.0.1] — 2026-10-04
 
 ### What's new
