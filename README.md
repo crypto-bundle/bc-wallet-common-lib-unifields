@@ -150,6 +150,54 @@ pkg/unifields/
 └── unifold_collection_test.go  # Tests for UnifoldCol collection behavior
 ```
 
+## ptr package
+
+The `ptr` sub-package (`github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/ptr`)
+provides a **pointer-based variant** of Unifield called `UnifieldPtr`. Instead of storing values
+directly in flat struct fields, it stores *pointers* to typed heap-allocated values. Only one pointer
+is non-nil at a time, determined by the `type_` discriminator tag.
+
+### Key differences from `pkg/unifields`
+
+| Aspect | `unifields.Unifield` | `ptr.UnifieldPtr` |
+|--------|---------------------|--------------------|
+| Storage | Flat value fields | Pointer fields |
+| Per-field alloc | Zero | One alloc per factory call |
+| Struct size | ~56 bytes | ~80 bytes |
+| Nil-slot cost | Non-zero (field still exists) | Zero (nil pointer) |
+| Clone | Full value copy | Shallow (same underlying refs) |
+
+Use `ptr` to benchmark trade-offs between allocation patterns against the value-based baseline.
+
+### Quick-start example
+
+```go
+import (
+    "fmt"
+    "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/ptr"
+)
+
+// Create — each factory allocates one heap copy of the value
+p := ptr.Int("user_id", 1234)
+s := ptr.String("status", "active")
+
+// Read — MarshalTo dereferences the stored pointer into dst
+var val int
+if err := p.MarshalToInt(&val); err != nil {
+    // handle mismatch or empty
+}
+fmt.Println(val) // 1234
+
+// Each factory allocates a heap copy, so mutating the original is safe:
+original := 999
+p2 := ptr.Int("key", original)
+original = 0
+var v int
+p2.MarshalToInt(&v) // v == 999 (not 0)
+```
+
+See [AGENTS.md](./pkg/unifields/ptr/AGENTS.md) for detailed API reference, design conventions, and extension points.
+
 ## License
 
 This project is licensed under the [MIT NON-AI License](./LICENSE).

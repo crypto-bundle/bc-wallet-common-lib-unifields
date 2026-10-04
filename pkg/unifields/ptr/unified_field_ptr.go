@@ -25,43 +25,6 @@
 // DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-// Package ptr provides a pointer-based variant of Unifield — UnifieldPtr.
-//
-// UnifieldPtr stores pointers to typed values instead of flat values. Each struct has
-// separate pointer slots (strP, i64P, u64P, f64P, tmP) and a direct error field (errP).
-// Only one pointer is non-nil at a time, determined by the type_ discriminator tag.
-//
-// This implementation trades increased per-allocation heap overhead (one alloc per factory call)
-// for potential memory savings when stored in large collections (nil pointers are smaller than
-// fat value slots on some platforms). Use this variant to benchmark trade-offs against the
-// value-based Unifield in the parent unifields package.
-//
-// # Creating UnifieldPtr instances
-//
-// Factory functions allocate a heap copy of the input value and store a pointer to it:
-//
-//	import "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/ptr"
-//
-//	p := ptr.Int("user_id", 1234)
-//	s := ptr.String("status", "active")
-//	t := ptr.Time("created_at", time.Now())
-//
-// Every factory call performs exactly one heap allocation for the value pointer.
-//
-// # Reading values
-//
-// MarshalTo<T> methods dereference the stored pointer into a caller-provided destination:
-//
-//	var val int
-//	if err := p.MarshalToInt(&val); err != nil {
-//	    // handle mismatch or empty
-//	}
-//
-// Internally, each MarshalTo method creates a stack copy of the stored value before writing
-// to dst — this is intentional to maintain immutability guarantees (external mutation of dst
-// cannot affect internal state, and repeated calls always return the original stored value).
-//
-// See pkg/unifields (parent package) for the value-based baseline implementation.
 package ptr
 
 import (
@@ -92,7 +55,7 @@ const (
 	valueTime                     // tmP holds pointer to time.Time value
 )
 
-// typeName returns a human-readable name for a valueType.
+// typeName returns a human-readable name for a valueType suitable for error messages.
 func typeName(t valueType) string {
 	switch t {
 	case valueEmpty:
@@ -132,17 +95,17 @@ func typeName(t valueType) string {
 	}
 }
 
-// isSignedInt reports whether the valueType represents a signed integer type (not unsigned).
+// isSignedInt reports whether the valueType represents a signed integer type.
 func isSignedInt(t valueType) bool {
 	return t >= valueInt && t < valueUint
 }
 
-// isUnsignedInt reports whether the valueType represents an unsigned integer type (not signed).
+// isUnsignedInt reports whether the valueType represents an unsigned integer type.
 func isUnsignedInt(t valueType) bool {
 	return t >= valueUint && t <= valueUint64
 }
 
-// Static error values for common failure cases.
+// Error variables returned by MarshalTo* and factory methods.
 var (
 	ErrDstNil        = errors.New("dst is nil")
 	ErrTypeMismatch  = errors.New("type mismatch")
@@ -184,7 +147,12 @@ func (u UnifieldPtr) Clone() UnifieldPtr {
 	return u
 }
 
-// MarshalToStr copies the stored string into dst.
+// MarshalToStr copies the stored string value into dst.
+//
+// It returns ErrDstNil if dst is nil, ErrEmptyUnifield if the UnifieldPtr has no
+// stored value, or ErrTypeMismatch if the UnifieldPtr holds a different type than
+// expected. The method dereferences the internal pointer and writes a stack copy to dst,
+// preserving immutability guarantees.
 func (u UnifieldPtr) MarshalToStr(dst *string) error {
 	if dst == nil {
 		return ErrDstNil
@@ -199,7 +167,11 @@ func (u UnifieldPtr) MarshalToStr(dst *string) error {
 	return nil
 }
 
-// MarshalToInt copies the stored int into dst.
+// MarshalToInt copies the stored int value into dst.
+//
+// It accepts any signed integer type (valueInt through valueInt64) due to cross-type
+// compatibility. It returns ErrDstNil if dst is nil, ErrEmptyUnifield if no value is
+// stored, or ErrTypeMismatch if the stored type is unsigned.
 func (u UnifieldPtr) MarshalToInt(dst *int) error {
 	if dst == nil {
 		return ErrDstNil
@@ -214,7 +186,10 @@ func (u UnifieldPtr) MarshalToInt(dst *int) error {
 	return nil
 }
 
-// MarshalToInt8 copies the stored int8 into dst.
+// MarshalToInt8 copies the stored int8 value into dst.
+//
+// It returns ErrDstNil if dst is nil, ErrEmptyUnifield if no value is stored,
+// or ErrTypeMismatch if the stored type is not exactly valueInt8.
 func (u UnifieldPtr) MarshalToInt8(dst *int8) error {
 	if dst == nil {
 		return ErrDstNil
@@ -229,7 +204,10 @@ func (u UnifieldPtr) MarshalToInt8(dst *int8) error {
 	return nil
 }
 
-// MarshalToInt16 copies the stored int16 into dst.
+// MarshalToInt16 copies the stored int16 value into dst.
+//
+// It returns ErrDstNil if dst is nil, ErrEmptyUnifield if no value is stored,
+// or ErrTypeMismatch if the stored type is not exactly valueInt16.
 func (u UnifieldPtr) MarshalToInt16(dst *int16) error {
 	if dst == nil {
 		return ErrDstNil
@@ -244,7 +222,10 @@ func (u UnifieldPtr) MarshalToInt16(dst *int16) error {
 	return nil
 }
 
-// MarshalToInt32 copies the stored int32 into dst.
+// MarshalToInt32 copies the stored int32 value into dst.
+//
+// It returns ErrDstNil if dst is nil, ErrEmptyUnifield if no value is stored,
+// or ErrTypeMismatch if the stored type is not exactly valueInt32.
 func (u UnifieldPtr) MarshalToInt32(dst *int32) error {
 	if dst == nil {
 		return ErrDstNil
@@ -259,7 +240,11 @@ func (u UnifieldPtr) MarshalToInt32(dst *int32) error {
 	return nil
 }
 
-// MarshalToInt64 copies the stored int64 into dst.
+// MarshalToInt64 copies the stored int64 value into dst.
+//
+// It accepts any signed integer type (valueInt through valueInt64) due to cross-type
+// compatibility. It returns ErrDstNil if dst is nil, ErrEmptyUnifield if no value is
+// stored, or ErrTypeMismatch if the stored type is unsigned.
 func (u UnifieldPtr) MarshalToInt64(dst *int64) error {
 	if dst == nil {
 		return ErrDstNil
@@ -274,7 +259,11 @@ func (u UnifieldPtr) MarshalToInt64(dst *int64) error {
 	return nil
 }
 
-// MarshalToUint copies the stored uint into dst.
+// MarshalToUint copies the stored uint value into dst.
+//
+// It accepts any unsigned integer type (valueUint through valueUint64) due to cross-type
+// compatibility. It returns ErrDstNil if dst is nil, ErrEmptyUnifield if no value is
+// stored, or ErrTypeMismatch if the stored type is signed.
 func (u UnifieldPtr) MarshalToUint(dst *uint) error {
 	if dst == nil {
 		return ErrDstNil
@@ -289,7 +278,10 @@ func (u UnifieldPtr) MarshalToUint(dst *uint) error {
 	return nil
 }
 
-// MarshalToUint8 copies the stored uint8 into dst.
+// MarshalToUint8 copies the stored uint8 value into dst.
+//
+// It returns ErrDstNil if dst is nil, ErrEmptyUnifield if no value is stored,
+// or ErrTypeMismatch if the stored type is not exactly valueUint8.
 func (u UnifieldPtr) MarshalToUint8(dst *uint8) error {
 	if dst == nil {
 		return ErrDstNil
@@ -304,7 +296,10 @@ func (u UnifieldPtr) MarshalToUint8(dst *uint8) error {
 	return nil
 }
 
-// MarshalToUint16 copies the stored uint16 into dst.
+// MarshalToUint16 copies the stored uint16 value into dst.
+//
+// It returns ErrDstNil if dst is nil, ErrEmptyUnifield if no value is stored,
+// or ErrTypeMismatch if the stored type is not exactly valueUint16.
 func (u UnifieldPtr) MarshalToUint16(dst *uint16) error {
 	if dst == nil {
 		return ErrDstNil
@@ -319,7 +314,10 @@ func (u UnifieldPtr) MarshalToUint16(dst *uint16) error {
 	return nil
 }
 
-// MarshalToUint32 copies the stored uint32 into dst.
+// MarshalToUint32 copies the stored uint32 value into dst.
+//
+// It returns ErrDstNil if dst is nil, ErrEmptyUnifield if no value is stored,
+// or ErrTypeMismatch if the stored type is not exactly valueUint32.
 func (u UnifieldPtr) MarshalToUint32(dst *uint32) error {
 	if dst == nil {
 		return ErrDstNil
@@ -334,7 +332,11 @@ func (u UnifieldPtr) MarshalToUint32(dst *uint32) error {
 	return nil
 }
 
-// MarshalToUint64 copies the stored uint64 into dst.
+// MarshalToUint64 copies the stored uint64 value into dst.
+//
+// It accepts any unsigned integer type (valueUint through valueUint64) due to cross-type
+// compatibility. It returns ErrDstNil if dst is nil, ErrEmptyUnifield if no value is
+// stored, or ErrTypeMismatch if the stored type is signed.
 func (u UnifieldPtr) MarshalToUint64(dst *uint64) error {
 	if dst == nil {
 		return ErrDstNil
@@ -349,7 +351,11 @@ func (u UnifieldPtr) MarshalToUint64(dst *uint64) error {
 	return nil
 }
 
-// MarshalToFloat32 copies the stored float32 into dst.
+// MarshalToFloat32 copies the stored float32 value into dst.
+//
+// It accepts either valueFloat32 or valueFloat64 since both share the same f64 backing
+// field. Narrowing from float64 to float32 is implicit. Returns ErrDstNil if dst is nil,
+// ErrEmptyUnifield if no value is stored, or ErrTypeMismatch otherwise.
 func (u UnifieldPtr) MarshalToFloat32(dst *float32) error {
 	if dst == nil {
 		return ErrDstNil
@@ -364,7 +370,11 @@ func (u UnifieldPtr) MarshalToFloat32(dst *float32) error {
 	return nil
 }
 
-// MarshalToFloat64 copies the stored float64 into dst.
+// MarshalToFloat64 copies the stored float64 value into dst.
+//
+// It accepts either valueFloat32 or valueFloat64 since both share the same f64 backing
+// field. Widening from float32 to float64 is implicit. Returns ErrDstNil if dst is nil,
+// ErrEmptyUnifield if no value is stored, or ErrTypeMismatch otherwise.
 func (u UnifieldPtr) MarshalToFloat64(dst *float64) error {
 	if dst == nil {
 		return ErrDstNil
@@ -379,7 +389,10 @@ func (u UnifieldPtr) MarshalToFloat64(dst *float64) error {
 	return nil
 }
 
-// MarshalToError copies the stored error into dst.
+// MarshalToError copies the stored error value into dst.
+//
+// Returns ErrDstNil if dst is nil, ErrEmptyUnifield if no value is stored,
+// or ErrTypeMismatch if the stored type is not valueError.
 func (u UnifieldPtr) MarshalToError(dst *error) error {
 	if dst == nil {
 		return ErrDstNil
@@ -394,7 +407,10 @@ func (u UnifieldPtr) MarshalToError(dst *error) error {
 	return nil
 }
 
-// MarshalToTime copies the stored time.Time into dst.
+// MarshalToTime copies the stored time.Time value into dst.
+//
+// Returns ErrDstNil if dst is nil, ErrEmptyUnifield if no value is stored,
+// or ErrTypeMismatch if the stored type is not valueTime.
 func (u UnifieldPtr) MarshalToTime(dst *time.Time) error {
 	if dst == nil {
 		return ErrDstNil
@@ -412,99 +428,140 @@ func (u UnifieldPtr) MarshalToTime(dst *time.Time) error {
 // --- Factory functions ---
 
 // String creates a new UnifieldPtr with key and string value.
-// Allocates a heap copy of val — mutating the original string after this call is safe.
+//
+// It allocates a heap copy of val so that mutating the original value after this
+// call does not affect the stored value. Only one pointer field (strP) will be
+// non-nil in the returned UnifieldPtr.
 func String(key string, val string) UnifieldPtr {
 	v := val
 	return UnifieldPtr{key: key, strP: &v, type_: valueString}
 }
 
 // Int creates a new UnifieldPtr with key and int value.
-// Allocates a heap copy of val (as int64) — mutating the original int after this call is safe.
+//
+// It allocates a heap copy of val (stored as int64) so that mutating the original
+// value after this call does not affect the stored value. Only one pointer field
+// (i64P) will be non-nil in the returned UnifieldPtr.
 func Int(key string, val int) UnifieldPtr {
 	v := int64(val)
 	return UnifieldPtr{key: key, i64P: &v, type_: valueInt}
 }
 
 // Int8 creates a new UnifieldPtr with key and int8 value.
-// Allocates a heap copy of val (as int64) — mutating the original int8 after this call is safe.
+//
+// It allocates a heap copy of val (stored as int64) so that mutating the original
+// value after this call does not affect the stored value. Only one pointer field
+// (i64P) will be non-nil in the returned UnifieldPtr.
 func Int8(key string, val int8) UnifieldPtr {
 	v := int64(val)
 	return UnifieldPtr{key: key, i64P: &v, type_: valueInt8}
 }
 
 // Int16 creates a new UnifieldPtr with key and int16 value.
-// Allocates a heap copy of val (as int64) — mutating the original int16 after this call is safe.
+//
+// It allocates a heap copy of val (stored as int64) so that mutating the original
+// value after this call does not affect the stored value. Only one pointer field
+// (i64P) will be non-nil in the returned UnifieldPtr.
 func Int16(key string, val int16) UnifieldPtr {
 	v := int64(val)
 	return UnifieldPtr{key: key, i64P: &v, type_: valueInt16}
 }
 
 // Int32 creates a new UnifieldPtr with key and int32 value.
-// Allocates a heap copy of val (as int64) — mutating the original int32 after this call is safe.
+//
+// It allocates a heap copy of val (stored as int64) so that mutating the original
+// value after this call does not affect the stored value. Only one pointer field
+// (i64P) will be non-nil in the returned UnifieldPtr.
 func Int32(key string, val int32) UnifieldPtr {
 	v := int64(val)
 	return UnifieldPtr{key: key, i64P: &v, type_: valueInt32}
 }
 
 // Int64 creates a new UnifieldPtr with key and int64 value.
-// Allocates a heap copy of val — mutating the original int64 after this call is safe.
+//
+// It allocates a heap copy of val so that mutating the original value after this
+// call does not affect the stored value. Only one pointer field (i64P) will be
+// non-nil in the returned UnifieldPtr.
 func Int64(key string, val int64) UnifieldPtr {
 	v := val
 	return UnifieldPtr{key: key, i64P: &v, type_: valueInt64}
 }
 
 // Uint creates a new UnifieldPtr with key and uint value.
-// Allocates a heap copy of val (as uint64) — mutating the original uint after this call is safe.
+//
+// It allocates a heap copy of val (stored as uint64) so that mutating the original
+// value after this call does not affect the stored value. Only one pointer field
+// (u64P) will be non-nil in the returned UnifieldPtr.
 func Uint(key string, val uint) UnifieldPtr {
 	v := uint64(val)
 	return UnifieldPtr{key: key, u64P: &v, type_: valueUint}
 }
 
 // Uint8 creates a new UnifieldPtr with key and uint8 value.
-// Allocates a heap copy of val (as uint64) — mutating the original uint8 after this call is safe.
+//
+// It allocates a heap copy of val (stored as uint64) so that mutating the original
+// value after this call does not affect the stored value. Only one pointer field
+// (u64P) will be non-nil in the returned UnifieldPtr.
 func Uint8(key string, val uint8) UnifieldPtr {
 	v := uint64(val)
 	return UnifieldPtr{key: key, u64P: &v, type_: valueUint8}
 }
 
 // Uint16 creates a new UnifieldPtr with key and uint16 value.
-// Allocates a heap copy of val (as uint64) — mutating the original uint16 after this call is safe.
+//
+// It allocates a heap copy of val (stored as uint64) so that mutating the original
+// value after this call does not affect the stored value. Only one pointer field
+// (u64P) will be non-nil in the returned UnifieldPtr.
 func Uint16(key string, val uint16) UnifieldPtr {
 	v := uint64(val)
 	return UnifieldPtr{key: key, u64P: &v, type_: valueUint16}
 }
 
 // Uint32 creates a new UnifieldPtr with key and uint32 value.
-// Allocates a heap copy of val (as uint64) — mutating the original uint32 after this call is safe.
+//
+// It allocates a heap copy of val (stored as uint64) so that mutating the original
+// value after this call does not affect the stored value. Only one pointer field
+// (u64P) will be non-nil in the returned UnifieldPtr.
 func Uint32(key string, val uint32) UnifieldPtr {
 	v := uint64(val)
 	return UnifieldPtr{key: key, u64P: &v, type_: valueUint32}
 }
 
 // Uint64 creates a new UnifieldPtr with key and uint64 value.
-// Allocates a heap copy of val — mutating the original uint64 after this call is safe.
+//
+// It allocates a heap copy of val so that mutating the original value after this
+// call does not affect the stored value. Only one pointer field (u64P) will be
+// non-nil in the returned UnifieldPtr.
 func Uint64(key string, val uint64) UnifieldPtr {
 	v := val
 	return UnifieldPtr{key: key, u64P: &v, type_: valueUint64}
 }
 
 // Float32 creates a new UnifieldPtr with key and float32 value.
-// Allocates a heap copy of val (as float64) — mutating the original float32 after this call is safe.
+//
+// It allocates a heap copy of val (stored as float64) so that mutating the original
+// value after this call does not affect the stored value. Only one pointer field
+// (f64P) will be non-nil in the returned UnifieldPtr.
 func Float32(key string, val float32) UnifieldPtr {
 	v := float64(val)
 	return UnifieldPtr{key: key, f64P: &v, type_: valueFloat32}
 }
 
 // Float64 creates a new UnifieldPtr with key and float64 value.
-// Allocates a heap copy of val — mutating the original float64 after this call is safe.
+//
+// It allocates a heap copy of val so that mutating the original value after this
+// call does not affect the stored value. Only one pointer field (f64P) will be
+// non-nil in the returned UnifieldPtr.
 func Float64(key string, val float64) UnifieldPtr {
 	v := val
 	return UnifieldPtr{key: key, f64P: &v, type_: valueFloat64}
 }
 
 // Err creates a new UnifieldPtr with key and error value.
-// Stores the error interface directly — since error is already an interface, no pointer indirection is needed.
-// Passing nil as val produces an empty UnifieldPtr.
+//
+// Stores the error interface directly — since error is already an interface, no
+// pointer indirection is needed. Passing nil as val produces an empty UnifieldPtr
+// with valueEmpty (MarshalToError will return ErrEmptyUnifield).
 func Err(key string, val error) UnifieldPtr {
 	if val == nil {
 		return UnifieldPtr{key: key, type_: valueEmpty}
@@ -513,7 +570,10 @@ func Err(key string, val error) UnifieldPtr {
 }
 
 // Time creates a new UnifieldPtr with key and time.Time value.
-// Allocates a heap copy of val — mutating the original time.Time after this call is safe.
+//
+// It allocates a heap copy of val so that mutating the original time.Time after
+// this call does not affect the stored value. Only one pointer field (tmP) will be
+// non-nil in the returned UnifieldPtr.
 func Time(key string, val time.Time) UnifieldPtr {
 	v := val
 	return UnifieldPtr{key: key, tmP: &v, type_: valueTime}

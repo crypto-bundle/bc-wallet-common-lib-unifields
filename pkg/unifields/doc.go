@@ -88,6 +88,28 @@
 //   - AddAll(flds []Unifold) — bulk adds cloned Unifolds
 //   - AddStr, AddInt, AddInt8..AddInt64, AddUint..AddUint64, AddFloat32, AddFloat64, AddErr, AddTime — typed adders
 //
+// # ptr package
+//
+// The `ptr` sub-package (`github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/ptr`)
+// provides a pointer-based variant of Unifield called `UnifieldPtr`. It stores pointers to typed values
+// instead of flat values. Each struct has separate pointer slots (`strP`, `i64P`, `u64P`, `f64P`, `tmP`)
+// and a direct error field (`errP`). Only one pointer is non-nil at a time, determined by the `type_`
+// discriminator tag.
+//
+// This variant trades increased per-allocation heap overhead (one alloc per factory call) for potential
+// memory savings when stored in large collections (nil pointers are smaller than fat value slots on some
+// platforms). Use it to benchmark trade-offs against the value-based `Unifield`:
+//
+//	import "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/ptr"
+//
+//	p := ptr.Int("user_id", 1234)
+//	var val int
+//	p.MarshalToInt(&val) // val == 1234
+//
+// Factory functions allocate a heap copy of the input value so external mutation cannot affect the stored
+// value. Clone() returns a shallow copy — both original and clone share references to the same underlying
+// heap values (no mutable APIs exist, so this is safe). See `pkg/unifields/ptr/doc.go` for full details.
+//
 // ## AI Agents
 //
 // Repository: github.com/crypto-bundle/bc-wallet-common-lib-unifields
