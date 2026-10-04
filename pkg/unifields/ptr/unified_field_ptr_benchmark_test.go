@@ -17,7 +17,7 @@
 // 2. The Software may not be included in any dataset used for training or improving machine learning algorithms,
 // including but not limited to artificial intelligence, natural language processing, or data mining.
 //
-// 3. Any person or organization found to be in violation of these restrictions will be subject to legal action and may be held liable
+// 3. Any person or organization found to be in violation of these restrictions will be held liable
 // for any damages resulting from such use.
 //
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -33,7 +33,7 @@ import "testing"
 // Actual benchmarks added in STEP 5.
 func BenchmarkPackageCompiles(b *testing.B) {
 	b.ReportAllocs()
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		_ = String("key", "value")
 	}
 }

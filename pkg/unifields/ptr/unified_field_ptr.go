@@ -66,6 +66,7 @@ package ptr
 
 import (
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -158,15 +159,20 @@ var (
 // Immutability guarantee: every factory function copies the input value onto the heap
 // before storing the pointer. Callers can safely mutate their original values after
 // passing them to a factory — the UnifieldPtr retains its own independent copy.
-type UnifieldPtr struct {
-	key   string    // identifier key for the field
-	errP  error     // error value stored directly (error is already an interface)
+//
+// Field layout: key + error interface consume 32 bytes minimum; five pointers follow
+// in natural order. Due to alignment constraints with string header (16B) and error
+// interface (16B), the struct totals 80 bytes — optimized as much as possible given
+// Go's memory model requirements.
+type UnifieldPtr struct { //nolint:govet // alignment constrained by string+error+5*pointer types
+	key   string     // identifier key for the field
+	errP  error      // error value stored directly (error is already an interface)
+	i64P  *int64     // pointer to signed int value (nil if not set)
+	u64P  *uint64    // pointer to unsigned int value (nil if not set)
+	f64P  *float64   // pointer to float value (nil if not set)
 	tmP   *time.Time // pointer to time.Time value (nil if not set)
 	strP  *string    // pointer to string value (nil if not set)
-	i64P  *int64    // pointer to signed int value (nil if not set)
-	u64P  *uint64   // pointer to unsigned int value (nil if not set)
-	f64P  *float64   // pointer to float value (nil if not set)
-	type_ valueType // discriminator tag — exactly one pointer is non-nil (or errP is set)
+	type_ valueType  // discriminator tag — exactly one pointer is non-nil (or errP is set)
 }
 
 // Clone returns a shallow copy of the UnifieldPtr. Since all pointer fields are
@@ -176,6 +182,231 @@ type UnifieldPtr struct {
 // UnifieldPtr struct itself never exposes mutable APIs, so this is safe in practice.
 func (u UnifieldPtr) Clone() UnifieldPtr {
 	return u
+}
+
+// MarshalToStr copies the stored string into dst.
+func (u UnifieldPtr) MarshalToStr(dst *string) error {
+	if dst == nil {
+		return ErrDstNil
+	}
+	if u.strP == nil {
+		return ErrEmptyUnifield
+	}
+	if u.type_ != valueString {
+		return fmt.Errorf("%w: got %s, want str", ErrTypeMismatch, typeName(u.type_))
+	}
+	*dst = *u.strP
+	return nil
+}
+
+// MarshalToInt copies the stored int into dst.
+func (u UnifieldPtr) MarshalToInt(dst *int) error {
+	if dst == nil {
+		return ErrDstNil
+	}
+	if u.i64P == nil {
+		return ErrEmptyUnifield
+	}
+	if !isSignedInt(u.type_) {
+		return fmt.Errorf("%w: got %s, want int", ErrTypeMismatch, typeName(u.type_))
+	}
+	*dst = int(*u.i64P)
+	return nil
+}
+
+// MarshalToInt8 copies the stored int8 into dst.
+func (u UnifieldPtr) MarshalToInt8(dst *int8) error {
+	if dst == nil {
+		return ErrDstNil
+	}
+	if u.i64P == nil {
+		return ErrEmptyUnifield
+	}
+	if u.type_ != valueInt8 {
+		return fmt.Errorf("%w: got %s, want int8", ErrTypeMismatch, typeName(u.type_))
+	}
+	*dst = int8(*u.i64P)
+	return nil
+}
+
+// MarshalToInt16 copies the stored int16 into dst.
+func (u UnifieldPtr) MarshalToInt16(dst *int16) error {
+	if dst == nil {
+		return ErrDstNil
+	}
+	if u.i64P == nil {
+		return ErrEmptyUnifield
+	}
+	if u.type_ != valueInt16 {
+		return fmt.Errorf("%w: got %s, want int16", ErrTypeMismatch, typeName(u.type_))
+	}
+	*dst = int16(*u.i64P)
+	return nil
+}
+
+// MarshalToInt32 copies the stored int32 into dst.
+func (u UnifieldPtr) MarshalToInt32(dst *int32) error {
+	if dst == nil {
+		return ErrDstNil
+	}
+	if u.i64P == nil {
+		return ErrEmptyUnifield
+	}
+	if u.type_ != valueInt32 {
+		return fmt.Errorf("%w: got %s, want int32", ErrTypeMismatch, typeName(u.type_))
+	}
+	*dst = int32(*u.i64P)
+	return nil
+}
+
+// MarshalToInt64 copies the stored int64 into dst.
+func (u UnifieldPtr) MarshalToInt64(dst *int64) error {
+	if dst == nil {
+		return ErrDstNil
+	}
+	if u.i64P == nil {
+		return ErrEmptyUnifield
+	}
+	if !isSignedInt(u.type_) {
+		return fmt.Errorf("%w: got %s, want int64", ErrTypeMismatch, typeName(u.type_))
+	}
+	*dst = *u.i64P
+	return nil
+}
+
+// MarshalToUint copies the stored uint into dst.
+func (u UnifieldPtr) MarshalToUint(dst *uint) error {
+	if dst == nil {
+		return ErrDstNil
+	}
+	if u.u64P == nil {
+		return ErrEmptyUnifield
+	}
+	if u.type_ != valueUint {
+		return fmt.Errorf("%w: got %s, want uint", ErrTypeMismatch, typeName(u.type_))
+	}
+	*dst = uint(*u.u64P)
+	return nil
+}
+
+// MarshalToUint8 copies the stored uint8 into dst.
+func (u UnifieldPtr) MarshalToUint8(dst *uint8) error {
+	if dst == nil {
+		return ErrDstNil
+	}
+	if u.u64P == nil {
+		return ErrEmptyUnifield
+	}
+	if u.type_ != valueUint8 {
+		return fmt.Errorf("%w: got %s, want uint8", ErrTypeMismatch, typeName(u.type_))
+	}
+	*dst = uint8(*u.u64P)
+	return nil
+}
+
+// MarshalToUint16 copies the stored uint16 into dst.
+func (u UnifieldPtr) MarshalToUint16(dst *uint16) error {
+	if dst == nil {
+		return ErrDstNil
+	}
+	if u.u64P == nil {
+		return ErrEmptyUnifield
+	}
+	if u.type_ != valueUint16 {
+		return fmt.Errorf("%w: got %s, want uint16", ErrTypeMismatch, typeName(u.type_))
+	}
+	*dst = uint16(*u.u64P)
+	return nil
+}
+
+// MarshalToUint32 copies the stored uint32 into dst.
+func (u UnifieldPtr) MarshalToUint32(dst *uint32) error {
+	if dst == nil {
+		return ErrDstNil
+	}
+	if u.u64P == nil {
+		return ErrEmptyUnifield
+	}
+	if u.type_ != valueUint32 {
+		return fmt.Errorf("%w: got %s, want uint32", ErrTypeMismatch, typeName(u.type_))
+	}
+	*dst = uint32(*u.u64P)
+	return nil
+}
+
+// MarshalToUint64 copies the stored uint64 into dst.
+func (u UnifieldPtr) MarshalToUint64(dst *uint64) error {
+	if dst == nil {
+		return ErrDstNil
+	}
+	if u.u64P == nil {
+		return ErrEmptyUnifield
+	}
+	if !isUnsignedInt(u.type_) {
+		return fmt.Errorf("%w: got %s, want uint64", ErrTypeMismatch, typeName(u.type_))
+	}
+	*dst = *u.u64P
+	return nil
+}
+
+// MarshalToFloat32 copies the stored float32 into dst.
+func (u UnifieldPtr) MarshalToFloat32(dst *float32) error {
+	if dst == nil {
+		return ErrDstNil
+	}
+	if u.f64P == nil {
+		return ErrEmptyUnifield
+	}
+	if u.type_ != valueFloat32 && u.type_ != valueFloat64 {
+		return fmt.Errorf("%w: got %s, want float32", ErrTypeMismatch, typeName(u.type_))
+	}
+	*dst = float32(*u.f64P)
+	return nil
+}
+
+// MarshalToFloat64 copies the stored float64 into dst.
+func (u UnifieldPtr) MarshalToFloat64(dst *float64) error {
+	if dst == nil {
+		return ErrDstNil
+	}
+	if u.f64P == nil {
+		return ErrEmptyUnifield
+	}
+	if u.type_ != valueFloat32 && u.type_ != valueFloat64 {
+		return fmt.Errorf("%w: got %s, want float64", ErrTypeMismatch, typeName(u.type_))
+	}
+	*dst = *u.f64P
+	return nil
+}
+
+// MarshalToError copies the stored error into dst.
+func (u UnifieldPtr) MarshalToError(dst *error) error {
+	if dst == nil {
+		return ErrDstNil
+	}
+	if u.errP == nil {
+		return ErrEmptyUnifield
+	}
+	if u.type_ != valueError {
+		return fmt.Errorf("%w: got %s, want error", ErrTypeMismatch, typeName(u.type_))
+	}
+	*dst = u.errP
+	return nil
+}
+
+// MarshalToTime copies the stored time.Time into dst.
+func (u UnifieldPtr) MarshalToTime(dst *time.Time) error {
+	if dst == nil {
+		return ErrDstNil
+	}
+	if u.tmP == nil {
+		return ErrEmptyUnifield
+	}
+	if u.type_ != valueTime {
+		return fmt.Errorf("%w: got %s, want time.Time", ErrTypeMismatch, typeName(u.type_))
+	}
+	*dst = *u.tmP
+	return nil
 }
 
 // --- Factory functions ---
