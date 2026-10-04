@@ -88,6 +88,48 @@
 //   - AddAll(flds []Unifold) — bulk adds cloned Unifolds
 //   - AddStr, AddInt, AddInt8..AddInt64, AddUint..AddUint64, AddFloat32, AddFloat64, AddErr, AddTime — typed adders
 //
+// # ptr package
+//
+// A pointer-based variant of Unifield is available in the `ptr` sub-package
+// (`github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/ptr`). It stores
+// pointers to typed values instead of flat fields. Each `UnifieldPtr` struct has separate
+// pointer slots (`strP`, `i64P`, `u64P`, `f64P`, `tmP`) plus a direct `errP` field. Only one
+// pointer is non-nil at a time, determined by the `type_` discriminator tag.
+//
+// This variant trades increased per-allocation heap overhead (one alloc per factory call) for
+// potential memory savings in large collections where nil pointers cost nothing compared to fat
+// value fields. Use it when you want to benchmark trade-offs against the value-based `Unifield`:
+//
+//	import "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/ptr"
+//
+//	p := ptr.Int("user_id", 1234)
+//	var val int
+//	p.MarshalToInt(&val) // val == 1234
+//
+// Factory functions allocate a heap copy of the input value so external mutation cannot affect
+// the stored value. Clone() returns a shallow copy — both original and clone share references to
+// the same underlying heap values (no mutable APIs exist, so this is safe).
+//
+// Comparison with pkg/unifields:
+//
+// | Aspect              | unifields.Unifield   | ptr.UnifieldPtr         |
+// |---------------------|----------------------|-------------------------|
+// | Storage             | Flat value fields    | Pointer fields          |
+// | Per-field alloc     | Zero                 | One alloc per factory   |
+// | Struct size         | ~56 bytes            | ~80 bytes               |
+// | Nil-slot cost       | Non-zero             | Zero (nil pointer)      |
+// | Clone               | Full value copy      | Shallow (same refs)     |
+//
+// Error handling follows a three-check pattern in every MarshalTo method:
+//
+//  1. Nil destination pointer → returns ErrDstNil
+//  2. No value stored (all pointers nil) → returns ErrEmptyUnifield
+//  3. Type mismatch → returns fmt.Errorf("%w: got %s, want <target>", ErrTypeMismatch, ...)
+//
+// Cross-type-compatible methods accept ranges of types sharing the same backing field:
+// MarshalToInt/MarshalToInt64 accept any signed int; MarshalToUint/MarshalToUint64 accept any
+// unsigned int; MarshalToFloat32/MarshalToFloat64 accept either (they share f64P).
+//
 // ## AI Agents
 //
 // Repository: github.com/crypto-bundle/bc-wallet-common-lib-unifields
@@ -99,10 +141,18 @@
 // ```text
 // pkg/unifields/
 // ├── doc.go                      → Package-level godoc + AI reference
-// ├── unified_field.go            → Unifold struct, factories, Clone(), MarshalTo*
-// ├── unified_field_test.go       → Unifold tests (factories, MarshalTo, Clone, errors)
+// ├── unified_field.go            → Unifold type, factories, Clone(), MarshalTo*
+// ├── unified_field_test.go       → Unifold tests
 // ├── unified_fields.go           → Unifolds collection (New, Add, AddAll, typed adders)
-// └── unified_fields_test.go      → Collection tests (immutability, clone separation)
+// ├── unified_fields_test.go      → Collection tests
+// └── ptr/
+//
+//	├── unified_field_ptr.go    → UnifieldPtr struct, factories, Clone(), MarshalTo*
+//	├── unified_field_ptr_test.go   → UnifieldPtr tests
+//	├── unified_field_ptr_benchmark_test.go → Benchmarks
+//	├── doc.go                  → ptr package godoc (detailed API reference)
+//	└── AGENTS.md               → Expanded agent reference (style rules, task tracking)
+//
 // ```
 //
 // ### Key types

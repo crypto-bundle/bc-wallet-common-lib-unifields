@@ -131,6 +131,15 @@ linters:
           - goheader
           - gci
 
+      - path: unified_field_ptr\.go
+        linters:
+          - cyclop
+          - exhaustruct_v5
+          - goheader
+          - gosec
+          - nlreturn
+          - wsl_v5
+
       - path: unified_field\.go
         linters:
           - cyclop

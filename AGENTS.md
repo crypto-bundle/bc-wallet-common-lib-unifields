@@ -4,18 +4,31 @@
 > **Maintainer:** [@gudron (Alex V Kotelnikov)](https://github.com/gudron)
 > **License:** [MIT NON-AI](./LICENSE)
 
-## Project overview
+## Package overview
 
-Typed value container (`zapcore.Field`-like). One struct holds exactly one typed value + key. Flat storage avoids per-field heap allocation; cheap copy via `Clone()`.
+This repo contains **two** packages under `pkg/unifields/`:
 
-**Package layout:**
+| Package | Variant | Storage pattern | Per-field alloc | Struct size |
+|---------|---------|----------------|-----------------|-------------|
+| `unifields` | Value-based | Flat value fields | Zero | ~56 bytes |
+| `unifields/ptr` | Pointer-based | Pointer fields | One alloc per factory | ~80 bytes |
+
+Both share the same 15 supported types and identical API conventions (factory names, MarshalTo methods, error variables). Use `unifields` for zero-allocation hot paths; use `unifields/ptr` when benchmarking trade-offs against heap allocation vs. struct size.
+
+### File layout
+
 ```text
 pkg/unifields/
-├── doc.go                      # Package-level godoc
+├── doc.go                      # Package-level godoc + AI reference
 ├── unified_field.go            # Unifold type, factories, Clone(), MarshalTo*
 ├── unified_field_test.go       # Unifold unit tests
 ├── unified_fields.go           # Unifolds collection (immutable)
-└── unified_fields_test.go      # Collection unit tests
+├── unified_fields_test.go      # Collection unit tests
+└── ptr/
+    ├── unified_field_ptr.go    # UnifieldPtr struct, factories, Clone(), MarshalTo*
+    ├── unified_field_ptr_test.go   # UnifieldPtr unit tests
+    ├── unified_field_ptr_benchmark_test.go # Benchmarks
+    └── AGENTS.md               # Expanded agent reference for ptr package
 ```
 
 ### Supported types
@@ -77,6 +90,60 @@ Only one data field is active at a time; `type_` indicates which one. This zeroe
 ### Float cross-type compatibility
 Both `MarshalToFloat32` and `MarshalToFloat64` accept **either** `valueFloat32` OR `valueFloat64` since they share the same `f64` backing field. Narrowing/widening is implicit.
 
+### Pointer-based variant (`unifields/ptr` sub-package)
+
+`UnifieldPtr` stores pointers to typed values instead of flat fields. Only one pointer is non-nil at a time; all others remain nil. This trades per-call heap allocation (one alloc per factory call) for zero cost on unused slots in collections.
+
+#### UnifieldPtr struct layout
+
+```go
+type UnifieldPtr struct {
+    key   string     // identifier key (first, like Unifold)
+    errP  error      // error value (direct, not pointer — error is already an interface)
+    i64P  *int64     // signed int pointer
+    u64P  *uint64    // unsigned int pointer
+    f64P  *float64   // float pointer
+    tmP   *time.Time // time pointer
+    strP  *string    // string pointer
+    type_ valueType // discriminator tag
+}
+```
+
+Field layout totals ~80 bytes. Due to alignment constraints with string header (16B) and error interface (16B), rearranging fields to optimize memory usage would break intentional grouping. A `//nolint:govet` comment suppresses FieldAlignment lint on this struct.
+
+#### Factory function template (ptr)
+
+```go
+func TypeName(key string, val Type) UnifieldPtr {
+    v := val             // or v := Type(val) if conversion needed
+    return UnifieldPtr{key: key, <field>P: &v, type_: value<Type>}
+}
+```
+Return plain struct literal. Heap copy via local variable ensures immutability. For `Err(key, val error)`, passing nil produces an empty UnifieldPtr.
+
+#### MarshalTo method template (ptr)
+
+```go
+func (u UnifieldPtr) MarshalTo<DstType>(dst *DstType) error {
+    if dst == nil {                          // blank line required after if-block (nlreturn rule)
+        return ErrDstNil
+    }
+    if u.<field>P == nil {                   // blank line required after if-block (nlreturn rule)
+        return ErrEmptyUnifield
+    }
+    if !is<Predicate>(u.type_) {             // or exact match: if u.type_ != value<Type>
+        return fmt.Errorf("%w: got %s, want <type>", ErrTypeMismatch, typeName(u.type_))
+    }
+    *dst = <conversion>(*u.<field>P)
+
+    return nil                               // blank line before return (nlreturn rule)
+}
+```
+
+#### Test patterns (ptr)
+
+In addition to positive, type-mismatch, nil-dst, and zero-value tests, ptr tests must cover empty UnifieldPtr access errors (calling any MarshalTo on `{key: "k"}` should return `ErrEmptyUnifield`). Clone separation tests verify that cloned structs have independent `key` and `type_` fields.
+
 ## Build & test commands
 
 ```bash
@@ -125,6 +192,7 @@ Each supported type needs: positive test, type-mismatch negative, nil-dst negati
 See `.golangci.yml` for full rules. Key exclusions:
 - `_test\.go` → cyclop, err113, funlen, gocognit, gocritic, goconst, nlreturn, paralleltest, govet, wsl_v5
 - `unified_field\.go` → cyclop, exhaustruct_v5, goheader, gosec, nlreturn, wsl_v5
+- `unified_field_ptr\.go` → cyclop, exhaustruct_v5, goheader, gosec, nlreturn, wsl_v5
 - `doc\.go` → goheader, gci
 - Source lines starting with `* ` → lll (long lines in comments)
 
