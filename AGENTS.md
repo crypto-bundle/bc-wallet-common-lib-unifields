@@ -10,30 +10,28 @@ This repo contains **three** packages under `pkg/unifields/`:
 
 | Package | Variant | Storage pattern | Per-field alloc | Struct size | Interface |
 |---------|---------|----------------|-----------------|-------------|-----------|
-| `unifields` | Collection | Slice of `Unifielder` | N/A | ~16 bytes (slice header) | Implements `Unifielder` items |
+| `unifields` | Collection + wrappers | Slice of `Unifielder` | N/A | ~16 bytes (slice header) | Holds `Unifielder` items |
 | `val` | Value-based | Flat value fields | Zero | ~56 bytes | Implements `Unifielder` |
 | `ptr` | Pointer-based | Pointer fields | One alloc per factory | ~80 bytes | Implements `Unifielder` |
 
-Both `val.Unifield` and `ptr.UnifieldPtr` share the same 15 supported types and identical API conventions (factory names, MarshalTo methods, error variables). Use `val` for zero-allocation hot paths; use `ptr` when pointer identity or deferred binding is needed. Both are polymorphic via the [Unifielder](./unifielder/doc.go) interface.
+**Quick access:** Consumers can use factory functions directly from `pkg/unifields/` without importing sub-packages: `unifields.String(...)`, `unifields.Int(...)`, etc. These wrap `val.` internally for zero-allocation usage. Both `val.Unifield` and `ptr.UnifieldPtr` share the same 15 supported types and identical API conventions. Use `val` for zero-allocation hot paths; use `ptr` when pointer identity or deferred binding is needed.
 
 ### File layout
 
 ```text
 pkg/unifields/
-├── doc.go                        # Package-level godoc + AI reference
-├── unified_field.go              # Package doc only (types re-exported from val/ & ptr/)
+├── unified_field.go                # Type alias (Unifield = val.Unifield) + 15 factory wrappers
 ├── unified_fields.go             # Unifields collection + Unifielder interface alias
 ├── unified_fields_test.go        # Collection tests (polymorphic val/ptr)
 └── unifielder/
     └── doc.go                    # Unifielder interface definition
 └─️ val/
-    ├── doc.go                    # Val package godoc
     ├── unified_field.go          # Unifield struct, factories, Clone(), MarshalTo*
     ├── unified_field_test.go     # Val unit tests
     └─️ unified_field_benchmark_test.go # Benchmarks (factory, clone, marshal, collection)
 └─️ ptr/
     ├── unified_field_ptr.go      # UnifieldPtr struct, factories, Clone(), MarshalTo*
-    ├── unified_field_ptr_test.go # UnifieldPtr unit tests
+    ├── unified_field_ptr_test.go # Ptr unit tests
     ├─️ unified_field_ptr_benchmark_test.go # Ptr benchmarks
     └── doc.go                    # Ptr package godoc (detailed API reference)
 ```
@@ -121,6 +119,30 @@ Both `val.Unifield` and `ptr.UnifieldPtr` implement this interface. The return t
 
 ### Float cross-type compatibility
 Both `MarshalToFloat32` and `MarshalToFloat64` accept **either** `valueFloat32` OR `valueFloat64` since they share the same `f64` backing field. Narrowing/widening is implicit.
+
+### Wrapper factory functions (parent `unifields` package)
+
+The parent `unifields` package exposes 15 wrapper factory functions that delegate to `val`. Consumers do not need to import `val/` for normal usage:
+
+```go
+import "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields"
+
+// All work through the parent package — no val/ import needed
+f := unifields.String("key", "value")   // delegates to val.String()
+g := unifields.Int("counter", 42)       // delegates to val.Int()
+h := unifields.Err("err", someErr)      // delegates to val.Err()
+```
+
+A type alias `Unifield = val.Unifield` is defined at the parent level so consumers can use the `Unifield` type name without importing `val/`.
+
+#### Factory wrapper template (parent unifields package)
+
+```go
+func TypeName(key string, val <Type>) Unifield { // Unifield is aliased to val.Unifield
+    return valpkg.TypeName(key, val)
+}
+```
+Single-line delegation. Zero runtime overhead — compiler inlines these calls.
 
 ### Pointer-based variant (`unifields/ptr` sub-package)
 

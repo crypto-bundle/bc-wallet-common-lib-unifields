@@ -26,19 +26,19 @@ Each factory function takes a key string and a typed value. Choose between two v
 ```go
 import (
     "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields"
-    "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/val"
-    "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/ptr"
     "errors"
     "time"
 )
 
-// Value-based (zero alloc)
-f1 := val.String("name", "alice")
-f2 := val.Int("status_code", 200)
+// Zero-allocation path — use unifields package directly, no sub-package import needed
+f1 := unifields.String("name", "alice")
+f2 := unifields.Int("status_code", 200)
+f3 := unifields.Err("error", errors.New("connection refused"))
+f4 := unifields.Time("timestamp", time.Now())
 
-// Pointer-based (one heap alloc per call)
-f3 := ptr.Int("user_id", 1234)
-f4 := ptr.Err("error", errors.New("connection refused"))
+// Pointer-based (one heap alloc per call) — import ptr explicitly
+// import "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/ptr"
+// p := ptr.Int("user_id", 1234)
 ```
 
 ### Reading values
@@ -57,7 +57,7 @@ Error cases:
 
 ```go
 err = f2.MarshalToUint(&val)  // ErrTypeMismatch: got int, want uint
-err := f4.MarshalToStr(nil)   // ErrDstNil
+err := f3.MarshalToStr(nil)   // ErrDstNil
 ```
 
 ### Cloning
@@ -70,12 +70,12 @@ The `Unifields` type provides an immutable collection wrapper that accepts any [
 
 ```go
 cols := unifields.NewUnifields()
-cols.Add(val.String("name", "alice"))    // val.Unifield via Unifielder
-cols.Add(ptr.Int("count", 42))           // ptr.UnifieldPtr via Unifielder
-cols.AddStr("message", "hello")          // backward-compatible typed adder (defaults to val.)
+cols.Add(unifields.String("name", "alice"))   // val.Unifield via Unifielder
+cols.Add(unifields.Int("count", 42))          // val.Unifield via Unifielder
+cols.AddStr("message", "hello")               // backward-compatible typed adder
 
-fmt.Println(cols.Len())                  // 3
-items := cols.Items()                    // []Unifielder
+fmt.Println(cols.Len())                       // 3
+items := cols.Items()                         // []Unifielder
 ```
 
 Available methods:
@@ -102,14 +102,12 @@ See `.agents/reports/benchmarks_val_unifield.md` for detailed benchmark results.
 
 ```
 pkg/unifields/
-├── doc.go                        # Package-level godoc (human-readable API reference)
-├── unified_field.go              # Package doc only — types re-exported from val/ & ptr/
-├── unified_fields.go             # Unifields collection + Unifielder interface type alias
+├── unified_field.go              # Type alias (Unifield = val.Unifield) + 15 factory wrappers
+├── unified_fields.go             # Unifields collection + Unifielder interface alias
 ├── unified_fields_test.go        # Collection tests (polymorphic val/ptr)
 ├── unifielder/
 │   └── doc.go                    # Unifielder interface definition
 ├─️ val/
-│   ├── doc.go                    # Val package godoc
 │   ├── unified_field.go          # Unifield struct, factories, Clone(), MarshalTo*
 │   ├── unified_field_test.go     # Val unit tests
 │   └─️ unified_field_benchmark_test.go # Benchmarks (factory, clone, marshal, collection)
@@ -124,10 +122,24 @@ pkg/unifields/
 
 | Package | Path |
 |---------|------|
-| Parent collection | `github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields` |
+| Parent collection + wrappers | `github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields` |
 | Interface | `github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/unifielder` |
 | Value-based | `github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/val` |
 | Pointer-based | `github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/ptr` |
+
+### Wrapper functions (no `val/` import needed)
+
+For everyday usage, all 15 factory functions are available from the parent `unifields` package:
+
+```go
+import "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields"
+
+f := unifields.String("key", "value")   // delegates to val.String()
+g := unifields.Int("counter", 42)       // delegates to val.Int()
+h := unifields.Err("err", someErr)      // delegates to val.Err()
+```
+
+A type alias `Unifield = val.Unifield` is defined at the parent level so consumers can use the `Unifield` type name without importing `val/`. This eliminates boilerplate: instead of `import ".../val"` just to call `val.String()`, you write `unifields.String()`.
 
 ## Supported types
 
