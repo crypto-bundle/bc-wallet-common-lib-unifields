@@ -25,31 +25,40 @@
 // DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-// Package unifields provides a typed value container similar to zapcore.Field.
+// Package unifields provides an immutable collection supporting both val.Unifield and ptr.UnifieldPtr.
 //
-// An Unifield holds exactly one typed value paired with a string key identifier.
-// It supports the following basic types: string, integers (int, int8..int64, uint, uint8..uint64),
-// floating-point numbers (float32, float64), error, and time.Time. Internally, each Unifield uses
-// flat storage — a single struct with separate fields for each type and a valueType discriminator tag.
-// This design avoids heap allocation per field and enables cheap copy semantics via Clone().
+// # Architecture Overview
 //
-// # Creating Unifields
+// The unifields library offers two implementations for holding typed values, each optimised
+// for different performance trade-offs:
 //
-// Factory functions create Unifield instances. Each function takes a key string and a typed value:
+//	Value-based (pkg/unifields/val): zero allocations per field, ~56-byte struct.
+//	Use when allocation-free hot paths are critical.
 //
-//	import "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields"
+//	Pointer-based (pkg/unifields/ptr): one heap alloc per factory call, ~80-byte struct.
+//	Use when pointer identity or deferred value binding is needed.
 //
-//	// Integer values
-//	f1 := unifields.Int("status_code", 200)
-//	f2 := unifields.Int64("count", 42)
-//	f3 := unifields.Uint64("id", 18446744073709551615)
+// Both implementations implement the [Unifielder] interface, allowing them to be mixed
+// freely inside a single [Unifields] collection.
 //
-//	// String and error
-//	f4 := unifields.String("message", "ok")
-//	f5 := unifields.Err("error", someError)
+// # Creating Typed Values
 //
-//	// Time
-//	f6 := unifields.Time("timestamp", time.Now())
+// Each sub-package provides factory functions that create typed value containers.
+// Factory functions take a key string and a typed value:
+//
+//	import (
+//	    "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields"
+//	    "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/val"
+//	    "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/ptr"
+//	)
+//
+//	// Value-based (zero alloc)
+//	f1 := val.String("name", "alice")
+//	f2 := val.Int("status_code", 200)
+//
+//	// Pointer-based (one alloc per call)
+//	f3 := ptr.Int("user_id", 1234)
+//	f4 := ptr.Err("error", someErr)
 //
 // # Reading values
 //
@@ -57,78 +66,50 @@
 // copy the stored value into a caller-provided pointer:
 //
 //	var val int
-//	if err := f1.MarshalToInt(&val); err != nil {
+//	if err := f2.MarshalToInt(&val); err != nil {
 //	    // handle type mismatch
 //	}
 //
-// If the Unifield holds a different type than expected, MarshalTo returns a descriptive error.
+// If the container holds a different type than expected, MarshalTo returns a descriptive error.
 // Passing a nil destination pointer also returns an error.
 //
 // # Cloning
 //
-// Clone returns a shallow copy of the Unifield. Since all stored fields are value-types
-// (except error which is an interface), modifying the original after cloning does not affect
-// the clone's stored values.
+// Clone returns a shallow copy implementing [Unifielder]. Modifying the original after cloning
+// does not affect the clone's stored values (for val types; ptr types share the same underlying
+// pointers).
 //
-// # Unifields collection
+// # Collection
 //
-// The Unifolds type provides an immutable collection wrapper around []*Unifold. All Add operations
-// store clones of input values, ensuring external mutation cannot affect the collection's contents.
+// The Unifields type provides an immutable collection wrapper that accepts any [Unifielder]:
 //
-//	import "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields"
-//
-//	cols := unifields.NewUnifolds()
-//	cols.AddInt("user_id", 1234)
-//	cols.AddStr("status", "active")
-//	cols.AddTime("created_at", time.Now())
+//	cols := unifields.NewUnifields()
+//	cols.Add(val.String("name", "alice"))       // val.Unifield via Unifielder
+//	cols.Add(ptr.Int("count", 42))              // ptr.UnifieldPtr via Unifielder
+//	cols.AddStr("message", "hello")             // backward-compatible typed adder
 //
 // Available methods:
-//   - NewUnifolds() — creates an empty collection
-//   - Add(fld Unifold) — adds a cloned Unifold
-//   - AddAll(flds []Unifold) — bulk adds cloned Unifolds
-//   - AddStr, AddInt, AddInt8..AddInt64, AddUint..AddUint64, AddFloat32, AddFloat64, AddErr, AddTime — typed adders
+//   - NewUnifields() — creates an empty collection
+//   - Add(fld Unifielder) — adds a cloned Unifielder (supports both val and ptr)
+//   - AddAll(flds []Unifielder) — bulk adds cloned Unifielders
+//   - Len() — returns item count
+//   - Items() — returns read-only copy of stored items
+//   - AddStr, AddInt, AddInt8..AddInt64, AddUint..AddUint64, AddFloat32, AddFloat64, AddErr, AddTime — typed adders (default to val.)
 //
-// # ptr package
+// # Choosing Between val and ptr
 //
-// A pointer-based variant of Unifield is available in the `ptr` sub-package
-// (`github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/ptr`). It stores
-// pointers to typed values instead of flat fields. Each `UnifieldPtr` struct has separate
-// pointer slots (`strP`, `i64P`, `u64P`, `f64P`, `tmP`) plus a direct `errP` field. Only one
-// pointer is non-nil at a time, determined by the `type_` discriminator tag.
+// | Criteria         | val.Unifield              | ptr.UnifieldPtr          |
+// |------------------|---------------------------|--------------------------|
+// | Allocs per field | 0                         | 1 (heap copy)            |
+// | Struct size      | ~56 bytes                 | ~80 bytes + heap pointers|
+// | Best for         | Zero-cost hot paths       | Pointer identity needed  |
 //
-// This variant trades increased per-allocation heap overhead (one alloc per factory call) for
-// potential memory savings in large collections where nil pointers cost nothing compared to fat
-// value fields. Use it when you want to benchmark trade-offs against the value-based `Unifield`:
+// See detailed benchmark results in .agents/reports/benchmarks_val_unifield.md.
 //
-//	import "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/ptr"
+// # Supported types
 //
-//	p := ptr.Int("user_id", 1234)
-//	var val int
-//	p.MarshalToInt(&val) // val == 1234
-//
-// Factory functions allocate a heap copy of the input value so external mutation cannot affect
-// the stored value. Clone() returns a shallow copy — both original and clone share references to
-// the same underlying heap values (no mutable APIs exist, so this is safe).
-//
-// Comparison with pkg/unifields:
-//
-// | Aspect              | unifields.Unifield   | ptr.UnifieldPtr         |
-// |---------------------|----------------------|-------------------------|
-// | Storage             | Flat value fields    | Pointer fields          |
-// | Per-field alloc     | Zero                 | One alloc per factory   |
-// | Struct size         | ~56 bytes            | ~80 bytes               |
-// | Nil-slot cost       | Non-zero             | Zero (nil pointer)      |
-// | Clone               | Full value copy      | Shallow (same refs)     |
-//
-// Error handling follows a three-check pattern in every MarshalTo method:
-//
-//  1. Nil destination pointer → returns ErrDstNil
-//  2. No value stored (all pointers nil) → returns ErrEmptyUnifield
-//  3. Type mismatch → returns fmt.Errorf("%w: got %s, want <target>", ErrTypeMismatch, ...)
-//
-// Cross-type-compatible methods accept ranges of types sharing the same backing field:
-// MarshalToInt/MarshalToInt64 accept any signed int; MarshalToUint/MarshalToUint64 accept any
-// unsigned int; MarshalToFloat32/MarshalToFloat64 accept either (they share f64P).
+// Both implementations support the same 15 basic types: string, integers (int, int8..int64,
+// uint, uint8..uint64), floats (float32, float64), error, and time.Time.
 //
 // ## AI Agents
 //
@@ -140,33 +121,44 @@
 //
 // ```text
 // pkg/unifields/
-// ├── doc.go                      → Package-level godoc + AI reference
-// ├── unified_field.go            → Unifold type, factories, Clone(), MarshalTo*
-// ├── unified_field_test.go       → Unifold tests
-// ├── unified_fields.go           → Unifolds collection (New, Add, AddAll, typed adders)
-// ├── unified_fields_test.go      → Collection tests
-// └── ptr/
+// ├── doc.go                        → Package-level godoc + AI reference
+// ├── unified_field.go              → Package doc only (re-exported to val/ and ptr/)
+// ├── unified_fields.go             → Unifields collection + Unifielder interface
+// ├── unified_fields_test.go        → Collection tests
+// └── unifielder/
 //
-//	├── unified_field_ptr.go    → UnifieldPtr struct, factories, Clone(), MarshalTo*
-//	├── unified_field_ptr_test.go   → UnifieldPtr tests
-//	├── unified_field_ptr_benchmark_test.go → Benchmarks
-//	├── doc.go                  → ptr package godoc (detailed API reference)
-//	└── AGENTS.md               → Expanded agent reference (style rules, task tracking)
+//	└── doc.go                    → Unifielder interface definition
+//
+// └─️ val/
+//
+//	├── doc.go                    → Val package godoc
+//	├── unified_field.go          → Unifield type, factories, Clone(), MarshalTo*
+//	├── unified_field_test.go     → Unifield unit tests
+//	└─️ unified_field_benchmark_test.go → Benchmarks (factory, clone, marshal, collection)
+//
+// └─️ ptr/
+//
+//	├── unified_field_ptr.go      → UnifieldPtr struct, factories, Clone(), MarshalTo*
+//	├── unified_field_ptr_test.go → UnifieldPtr unit tests
+//	├─️ unified_field_ptr_benchmark_test.go → Ptr benchmarks
+//	└── doc.go                    → Ptr package godoc (detailed API reference)
 //
 // ```
 //
-// ### Key types
+// ### Key types and interfaces
 //
-// | Type          | Purpose                          | File                |
-// |---------------|----------------------------------|---------------------|
-// | Unifold       | Single typed value + key         | unified_field.go    |
-// | Unifolds      | Immutable collection of Unifold  | unified_fields.go   |
-// | valueType     | Discriminator enum (iota)        | unified_field.go    |
+// | Type/Interface | Purpose                             | Location               |
+// |----------------|-------------------------------------|------------------------|
+// | Unifield       | Single typed value + key (value)    | pkg/unifields/val/     |
+// | UnifieldPtr    | Single typed value + key (pointer)  | pkg/unifields/ptr/     |
+// | Unifielder     | Interface for polymorphic storage   | pkg/unifields/unifielder/ |
+// | Unifields      | Immutable collection of Unifielders | pkg/unifields/         |
+// | valueType      | Discriminator enum                  | internal to val/ & ptr/|
 //
 // ### Supported types & API table
 //
-// | Type | Factory | Read method | Collection adder |
-// |------|---------|-------------|------------------|
+// | Type | Factory (val/ptr) | Read method | Collection adder |
+// |------|--------------------|-------------|------------------|
 // | string | String(key, val) | MarshalToStr(*string) | AddStr |
 // | int | Int(key, val) | MarshalToInt(*int) | AddInt |
 // | int8 | Int8(key, val) | MarshalToInt8(*int8) | AddInt8 |
@@ -185,14 +177,15 @@
 //
 // ### Extension points (adding a new basic type)
 //
-// 1. Add iota constant to `valueType` enum in `unified_field.go`
-// 2. Add backing field to `Unifold` struct (e.g. `i32 int32`)
-// 3. Create factory function (`func Int32(key string, val int32) Unifold`)
-// 4. Create `MarshalToInt32(dst *int32) error` receiver method
-// 5. Create `AddInt32(key string, val int32)` collection adder
-// 6. Add test to `unified_field_test.go` + `unified_fields_test.go`
-// 7. Update `typeName()` switch with new case label
-// 8. Update helper predicates (`isSignedInt` / `isUnsignedInt`) if type belongs to range
+// 1. Add iota constant to `valueType` enum in `pkg/unifields/val/unified_field.go`
+// 2. Add backing field to `Unifield` struct
+// 3. Create factory function in val/ (`func NewType(key string, val Type) Unifield`)
+// 4. Create `MarshalToType(dst *Type) error` receiver method in val/
+// 5. Repeat steps 1-4 for ptr/ (`UnifieldPtr` variant)
+// 6. Add Add<Type>() method to `pkg/unifields/unified_fields.go` (calls val factory)
+// 7. Add test cases to both `pkg/unifields/val/unified_field_test.go` and `pkg/unifields/ptr/unified_field_ptr_test.go`
+// 8. Update `typeName()` switch in both val/ and ptr/ with new case label
+// 9. Update helper predicates (`isSignedInt` / `isUnsignedInt`) if type belongs to range
 //
 // ### Build commands
 //
