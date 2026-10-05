@@ -1,6 +1,6 @@
 // MIT NON-AI License
 //
-// Copyright (c) 2022-2026 Aleksei Kotelnikov(gudron2s@gmail.com)
+// Copyright (c) 2024-2026 Aleksei Kotelnikov(gudron2s@gmail.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of the software and associated documentation files (the "Software"),
 // to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
@@ -27,111 +27,133 @@
 
 package unifields
 
-import "time"
+import (
+	"time"
 
-// Unifields is an immutable collection of Unifield values stored as pointers internally.
+	unifolderv2 "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/unifielder"
+	valpkg "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/val"
+)
+
+// Unifielder is the shared interface implemented by both val.Unifield and ptr.UnifieldPtr.
+type Unifielder = unifolderv2.Unifielder
+
+// Unifields is an immutable collection supporting both val.Unifield and ptr.UnifieldPtr.
 // External users cannot mutate internal state — all Add operations store clones,
 // ensuring that modifying a returned Unifield does not affect the collection's contents.
 type Unifields struct {
-	items []*Unifield
+	items []Unifielder
 }
 
 // NewUnifields creates a new empty Unifields collection.
 func NewUnifields() *Unifields {
-	return &Unifields{items: make([]*Unifield, 0)}
+	return &Unifields{items: make([]Unifielder, 0)}
 }
 
-// Add appends a clone of the given Unifield to the collection.
-func (u *Unifields) Add(fld Unifield) {
+// Add appends a clone of the given Unifielder to the collection.
+// Accepts both val.Unifield and ptr.UnifieldPtr implementations.
+func (u *Unifields) Add(fld Unifielder) {
 	c := fld.Clone()
-	u.items = append(u.items, &c)
+	u.items = append(u.items, c)
 }
 
-// AddAll appends clones of all given Unifields to the collection.
+// AddAll appends clones of all given Unifielders to the collection.
 // If flds is empty or nil, this is a no-op.
-func (u *Unifields) AddAll(flds []Unifield) {
+func (u *Unifields) AddAll(flds []Unifielder) {
 	if len(flds) == 0 {
 		return
 	}
-	cloned := make([]*Unifield, len(flds))
+	cloned := make([]Unifielder, len(flds))
 	for i := range flds {
 		c := flds[i].Clone()
-		cloned[i] = &c
+		cloned[i] = c
 	}
 	u.items = append(u.items, cloned...)
 }
 
 // AddStr adds a string-typed Unifield with the given key and value.
-func (u *Unifields) AddStr(key string, val string) {
-	u.Add(String(key, val))
+func (u *Unifields) AddStr(key string, value string) {
+	u.Add(valpkg.String(key, value))
 }
 
 // AddInt adds an int-typed Unifield with the given key and value.
-func (u *Unifields) AddInt(key string, val int) {
-	u.Add(Int(key, val))
+func (u *Unifields) AddInt(key string, value int) {
+	u.Add(valpkg.Int(key, value))
 }
 
 // AddInt8 adds an int8-typed Unifield with the given key and value.
-func (u *Unifields) AddInt8(key string, val int8) {
-	u.Add(Int8(key, val))
+func (u *Unifields) AddInt8(key string, value int8) {
+	u.Add(valpkg.Int8(key, value))
 }
 
 // AddInt16 adds an int16-typed Unifield with the given key and value.
-func (u *Unifields) AddInt16(key string, val int16) {
-	u.Add(Int16(key, val))
+func (u *Unifields) AddInt16(key string, value int16) {
+	u.Add(valpkg.Int16(key, value))
 }
 
 // AddInt32 adds an int32-typed Unifield with the given key and value.
-func (u *Unifields) AddInt32(key string, val int32) {
-	u.Add(Int32(key, val))
+func (u *Unifields) AddInt32(key string, value int32) {
+	u.Add(valpkg.Int32(key, value))
 }
 
 // AddInt64 adds an int64-typed Unifield with the given key and value.
-func (u *Unifields) AddInt64(key string, val int64) {
-	u.Add(Int64(key, val))
+func (u *Unifields) AddInt64(key string, value int64) {
+	u.Add(valpkg.Int64(key, value))
 }
 
 // AddUint adds a uint-typed Unifield with the given key and value.
-func (u *Unifields) AddUint(key string, val uint) {
-	u.Add(Uint(key, val))
+func (u *Unifields) AddUint(key string, value uint) {
+	u.Add(valpkg.Uint(key, value))
 }
 
 // AddUint8 adds a uint8-typed Unifield with the given key and value.
-func (u *Unifields) AddUint8(key string, val uint8) {
-	u.Add(Uint8(key, val))
+func (u *Unifields) AddUint8(key string, value uint8) {
+	u.Add(valpkg.Uint8(key, value))
 }
 
-// AddUint16 adds a uint16-typed Unifield with the given key and value.
-func (u *Unifields) AddUint16(key string, val uint16) {
-	u.Add(Uint16(key, val))
+// AddUint16 adds an int16-typed Unifield with the given key and value.
+func (u *Unifields) AddUint16(key string, value uint16) {
+	u.Add(valpkg.Uint16(key, value))
 }
 
-// AddUint32 adds a uint32-typed Unifield with the given key and value.
-func (u *Unifields) AddUint32(key string, val uint32) {
-	u.Add(Uint32(key, val))
+// AddUint32 adds an int32-typed Unifield with the given key and value.
+func (u *Unifields) AddUint32(key string, value uint32) {
+	u.Add(valpkg.Uint32(key, value))
 }
 
 // AddUint64 adds a uint64-typed Unifield with the given key and value.
-func (u *Unifields) AddUint64(key string, val uint64) {
-	u.Add(Uint64(key, val))
+func (u *Unifields) AddUint64(key string, value uint64) {
+	u.Add(valpkg.Uint64(key, value))
 }
 
 // AddFloat32 adds a float32-typed Unifield with the given key and value.
-func (u *Unifields) AddFloat32(key string, val float32) {
-	u.Add(Float32(key, val))
+func (u *Unifields) AddFloat32(key string, value float32) {
+	u.Add(valpkg.Float32(key, value))
 }
 
 // AddFloat64 adds a float64-typed Unifield with the given key and value.
-func (u *Unifields) AddFloat64(key string, val float64) {
-	u.Add(Float64(key, val))
+func (u *Unifields) AddFloat64(key string, value float64) {
+	u.Add(valpkg.Float64(key, value))
 }
 
 // AddErr adds an error-typed Unifield with the given key and value.
-func (u *Unifields) AddErr(key string, val error) {
-	u.Add(Err(key, val))
+func (u *Unifields) AddErr(key string, value error) {
+	u.Add(valpkg.Err(key, value))
 }
 
 // AddTime adds a time.Time-typed Unifield with the given key and value.
-func (u *Unifields) AddTime(key string, val time.Time) {
-	u.Add(Time(key, val))
+func (u *Unifields) AddTime(key string, value time.Time) {
+	u.Add(valpkg.Time(key, value))
+}
+
+// Len returns the number of items in the collection.
+func (u *Unifields) Len() int {
+	return len(u.items)
+}
+
+// Items returns a read-only slice of all stored Unifielders.
+// Modifying returned items has no effect on the collection's internal state.
+func (u *Unifields) Items() []Unifielder {
+	out := make([]Unifielder, len(u.items))
+	copy(out, u.items)
+	return out
 }
