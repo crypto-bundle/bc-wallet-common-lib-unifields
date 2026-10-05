@@ -135,7 +135,6 @@ linters:
         linters:
           - cyclop
           - exhaustruct_v5
-          - goheader
           - gosec
           - nlreturn
           - wsl_v5
@@ -144,7 +143,6 @@ linters:
         linters:
           - cyclop
           - exhaustruct_v5
-          - goheader
           - gosec
           - nlreturn
           - wsl_v5
@@ -153,7 +151,6 @@ linters:
         linters:
           - cyclop
           - exhaustruct_v5
-          - goheader
           - gosec
           - nlreturn
           - wsl_v5
