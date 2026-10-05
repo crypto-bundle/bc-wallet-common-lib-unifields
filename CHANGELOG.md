@@ -1,6 +1,6 @@
 # Change Log
 
-## [v0.0.2] — 2026-10-04
+## [v0.0.2] — 2026-10-05
 
 ### Added
 
@@ -8,6 +8,9 @@
 - Expanded error handling — nil destination, type mismatch, and empty storage access all return clear errors
 - Benchmarks for all operations measuring speed and memory usage
 - Full godoc coverage on every exported method, AI-agent reference guide, updated README with both variants compared
+- Zero-allocation value-storage variant extracted into its own sub-package for hot-path efficiency
+- Convenience factory functions at the parent package level — no need to import sub-packages for everyday use
+- Shared polymorphic interface enabling heterogeneous collections mixing both storage variants
 
 ## [v0.0.1] — 2026-10-04
 
