@@ -145,7 +145,7 @@ type UnifieldPtr struct { //nolint:govet // alignment constrained by string+erro
 // references to the same underlying heap values. Modifications to those heap
 // values through one clone will be visible through the other — however, the
 // UnifieldPtr struct itself never exposes mutable APIs, so this is safe in practice.
-func (u UnifieldPtr) Clone() unifolderv2.Unifielder {
+func (u UnifieldPtr) Clone() unifolderv2.Unifielder { //nolint:ireturn // intentionally returns interface for polymorphic collections
 	return u
 }
 

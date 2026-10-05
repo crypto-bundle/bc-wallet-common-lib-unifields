@@ -156,7 +156,7 @@ func Time(key string, val time.Time) Unifield {
 
 // Clone returns a shallow copy of the Unifield implementing Unifielder. Since all fields
 // except error (an interface) are pure values, this preserves all stored values correctly.
-func (u Unifield) Clone() unifolderv2.Unifielder {
+func (u Unifield) Clone() unifolderv2.Unifielder { //nolint:ireturn // intentionally returns interface for polymorphic collections
 	return u
 }
 

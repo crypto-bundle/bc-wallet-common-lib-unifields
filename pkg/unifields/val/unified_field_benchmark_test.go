@@ -387,7 +387,7 @@ func BenchmarkCollectionAddPtr_Time(b *testing.B) {
 	}
 }
 
-// helper type for benchmark collections — mirrors unifields.Unifields internally
+// helper type for benchmark collections -- mirrors unifields.Unifields internally.
 type benchmarkCollection struct {
 	items []unifolderv2.Unifielder
 }

@@ -261,7 +261,7 @@ func TestTimeField(t *testing.T) {
 func TestClone(t *testing.T) {
 	f := Int("key", 99)
 	c := f.Clone()
-	clonedVal := c.(Unifield)
+	clonedVal := c.(Unifield) //nolint:forcetypeassert // Clone() always returns concrete type wrapping itself
 	if clonedVal.key != f.key || clonedVal.i64 != f.i64 || clonedVal.type_ != f.type_ {
 		t.Error("clone fields mismatch")
 	}
@@ -377,7 +377,7 @@ func TestKeyPreserved(t *testing.T) {
 		t.Errorf("key expected 'my-key', got %q", f.key)
 	}
 	c := f.Clone()
-	clonedVal := c.(Unifield)
+	clonedVal := c.(Unifield) //nolint:forcetypeassert // Clone() always returns concrete Unifield wrapping itself
 	if clonedVal.key != "my-key" {
 		t.Errorf("clone key expected 'my-key', got %q", clonedVal.key)
 	}

@@ -447,7 +447,7 @@ func TestCloneSeparation(t *testing.T) {
 	// Both point to same heap int64, but the struct itself is copied.
 	// Since we don't expose mutable APIs, Clone separation here means
 	// the struct-level fields (key, type_) are independent copies.
-	clonedVal := ptrCloned.(UnifieldPtr)
+	clonedVal := ptrCloned.(UnifieldPtr) //nolint:forcetypeassert // Clone() always returns concrete UnifieldPtr wrapping itself
 	if ptrSrc.key != clonedVal.key {
 		t.Errorf("cloned key = %q, want %q", clonedVal.key, ptrSrc.key)
 	}
@@ -1087,7 +1087,7 @@ func TestKeyPreserved(t *testing.T) {
 		t.Errorf("key expected 'my-key', got %q", u.key)
 	}
 	c := u.Clone()
-	clonedVal := c.(UnifieldPtr)
+	clonedVal := c.(UnifieldPtr) //nolint:forcetypeassert // Clone() always returns concrete UnifieldPtr wrapping itself
 	if clonedVal.key != "my-key" {
 		t.Errorf("clone key expected 'my-key', got %q", clonedVal.key)
 	}
