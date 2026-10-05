@@ -25,30 +25,28 @@
 // DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-// Package unifields provides an immutable collection of typed field values.
+// Package val provides the zero-allocation Unifield implementation.
 //
-// # Architecture Overview
+// Unifield holds exactly one typed value (string, integer, float, error, or time.Time) paired
+// with a key identifier. It uses flat storage with no heap allocations per field — similar to
+// zapcore.Field. Use this package when allocation-free hot paths are critical.
 //
-// The package offers two implementations for holding typed values, each optimised
-// for different performance trade-offs:
+// For pointer-based semantics (one alloc per factory call, ~80-byte struct), see the
+// ptr sub-package instead.
 //
-//	Value-based (pkg/unifields/val): zero allocations per field, ~56-byte struct.
-//	Use when allocation-free hot paths are critical.
+// # Choosing Between val and ptr
 //
-//	Pointer-based (pkg/unifields/ptr): one heap alloc per factory call, ~80-byte struct.
-//	Use when pointer identity or deferred value binding is needed.
-//
-// Both implementations implement the [Unifielder] interface, allowing them to be
-// mixed freely inside a single [Unifields] collection.
+//	| Criteria         | val.Unifield              | ptr.UnifieldPtr          |
+//	|------------------|---------------------------|--------------------------|
+//	| Allocs per field | 0                         | 1 (heap copy)            |
+//	| Struct size      | ~56 bytes                 | ~80 bytes + heap pointers|
+//	| Best for         | Zero-cost hot paths       | Pointer identity needed  |
 //
 // # Example
 //
-//	import (
-//	    "github.com/crypto-bundle/bc-wallet-common-lib-unifields"
-//	    "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/val"
-//	)
+//	import "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/val"
 //
-//	collection := unifields.NewUnifields()
-//	collection.Add(val.String("name", "alice")) // val.Unifield via Unifielder
-//	collection.AddStr("count", 42)              // backward-compatible typed adder
-package unifields
+//	f := val.String("name", "alice")
+//	var s string
+//	val.MarshalToStr(&s) // s == "alice"
+package val

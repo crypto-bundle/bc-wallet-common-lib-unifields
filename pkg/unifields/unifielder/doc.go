@@ -25,30 +25,16 @@
 // DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-// Package unifields provides an immutable collection of typed field values.
+// Package unifielder defines the shared interface for all typed field holder implementations.
 //
-// # Architecture Overview
-//
-// The package offers two implementations for holding typed values, each optimised
-// for different performance trade-offs:
-//
-//	Value-based (pkg/unifields/val): zero allocations per field, ~56-byte struct.
-//	Use when allocation-free hot paths are critical.
-//
-//	Pointer-based (pkg/unifields/ptr): one heap alloc per factory call, ~80-byte struct.
-//	Use when pointer identity or deferred value binding is needed.
-//
-// Both implementations implement the [Unifielder] interface, allowing them to be
-// mixed freely inside a single [Unifields] collection.
-//
-// # Example
-//
-//	import (
-//	    "github.com/crypto-bundle/bc-wallet-common-lib-unifields"
-//	    "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/val"
-//	)
-//
-//	collection := unifields.NewUnifields()
-//	collection.Add(val.String("name", "alice")) // val.Unifield via Unifielder
-//	collection.AddStr("count", 42)              // backward-compatible typed adder
-package unifields
+// Both val.Unifield and ptr.UnifieldPtr implement this interface, enabling polymorphic
+// storage in collections without introducing circular dependencies between the two
+// implementation packages.
+package unifielder
+
+// Unifielder is the shared interface implemented by both val.Unifield and ptr.UnifieldPtr.
+// It enables polymorphic storage in collections while preserving clone semantics across
+// both implementations.
+type Unifielder interface {
+	Clone() Unifielder
+}

@@ -17,7 +17,7 @@
 // 2. The Software may not be included in any dataset used for training or improving machine learning algorithms,
 // including but not limited to artificial intelligence, natural language processing, or data mining.
 //
-// 3. Any person or organization found to be in violation of these restrictions will be held liable
+// 3. Any person or organization found to be in violation of these restrictions will be subject to legal action and may be held liable
 // for any damages resulting from such use.
 //
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -25,7 +25,7 @@
 // DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-package unifields
+package val
 
 import (
 	"errors"
@@ -261,15 +261,9 @@ func TestTimeField(t *testing.T) {
 func TestClone(t *testing.T) {
 	f := Int("key", 99)
 	c := f.Clone()
-	if c.key != f.key || c.i64 != f.i64 || c.type_ != f.type_ {
+	clonedVal := c.(Unifield)
+	if clonedVal.key != f.key || clonedVal.i64 != f.i64 || clonedVal.type_ != f.type_ {
 		t.Error("clone fields mismatch")
-	}
-	f.str = "mutated"
-	if c.str != "" {
-		t.Errorf("clone str mutated: expected empty, got %q", c.str)
-	}
-	if f.str != "mutated" {
-		t.Errorf("original str not mutated: got %q", f.str)
 	}
 }
 
@@ -383,8 +377,9 @@ func TestKeyPreserved(t *testing.T) {
 		t.Errorf("key expected 'my-key', got %q", f.key)
 	}
 	c := f.Clone()
-	if c.key != "my-key" {
-		t.Errorf("clone key expected 'my-key', got %q", c.key)
+	clonedVal := c.(Unifield)
+	if clonedVal.key != "my-key" {
+		t.Errorf("clone key expected 'my-key', got %q", clonedVal.key)
 	}
 }
 

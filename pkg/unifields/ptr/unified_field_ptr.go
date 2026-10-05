@@ -31,6 +31,8 @@ import (
 	"errors"
 	"fmt"
 	"time"
+
+	unifolderv2 "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/unifielder"
 )
 
 // valueType identifies the stored datatype inside an UnifieldPtr instance.
@@ -143,7 +145,7 @@ type UnifieldPtr struct { //nolint:govet // alignment constrained by string+erro
 // references to the same underlying heap values. Modifications to those heap
 // values through one clone will be visible through the other — however, the
 // UnifieldPtr struct itself never exposes mutable APIs, so this is safe in practice.
-func (u UnifieldPtr) Clone() UnifieldPtr {
+func (u UnifieldPtr) Clone() unifolderv2.Unifielder {
 	return u
 }
 
