@@ -12,6 +12,10 @@
 - Convenience factory functions at the parent package level — no need to import sub-packages for everyday use
 - Shared polymorphic interface enabling heterogeneous collections mixing both storage variants
 
+### Changed
+
+- Minimum Go version raised from 1.23 to 1.27
+
 ## [v0.0.1] — 2026-10-04
 
 ### What's new
