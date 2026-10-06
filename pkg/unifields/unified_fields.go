@@ -28,10 +28,7 @@
 package unifields
 
 import (
-	"time"
-
 	unifolderv2 "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/unifielder"
-	valpkg "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/val"
 )
 
 // Unifielder is the shared interface implemented by both val.Unifield and ptr.UnifieldPtr.
@@ -40,6 +37,8 @@ type Unifielder = unifolderv2.Unifielder
 // Unifields is an immutable collection supporting both val.Unifield and ptr.UnifieldPtr.
 // External users cannot mutate internal state — all Add operations store clones,
 // ensuring that modifying a returned Unifield does not affect the collection's contents.
+//
+// Deprecated: Use [UnitfieldList] for new code. This type is kept for backward compatibility.
 type Unifields struct {
 	items []Unifielder
 }
@@ -68,81 +67,6 @@ func (u *Unifields) AddAll(flds []Unifielder) {
 		cloned[i] = c
 	}
 	u.items = append(u.items, cloned...)
-}
-
-// AddStr adds a string-typed Unifield with the given key and value.
-func (u *Unifields) AddStr(key string, value string) {
-	u.Add(valpkg.String(key, value))
-}
-
-// AddInt adds an int-typed Unifield with the given key and value.
-func (u *Unifields) AddInt(key string, value int) {
-	u.Add(valpkg.Int(key, value))
-}
-
-// AddInt8 adds an int8-typed Unifield with the given key and value.
-func (u *Unifields) AddInt8(key string, value int8) {
-	u.Add(valpkg.Int8(key, value))
-}
-
-// AddInt16 adds an int16-typed Unifield with the given key and value.
-func (u *Unifields) AddInt16(key string, value int16) {
-	u.Add(valpkg.Int16(key, value))
-}
-
-// AddInt32 adds an int32-typed Unifield with the given key and value.
-func (u *Unifields) AddInt32(key string, value int32) {
-	u.Add(valpkg.Int32(key, value))
-}
-
-// AddInt64 adds an int64-typed Unifield with the given key and value.
-func (u *Unifields) AddInt64(key string, value int64) {
-	u.Add(valpkg.Int64(key, value))
-}
-
-// AddUint adds a uint-typed Unifield with the given key and value.
-func (u *Unifields) AddUint(key string, value uint) {
-	u.Add(valpkg.Uint(key, value))
-}
-
-// AddUint8 adds a uint8-typed Unifield with the given key and value.
-func (u *Unifields) AddUint8(key string, value uint8) {
-	u.Add(valpkg.Uint8(key, value))
-}
-
-// AddUint16 adds an int16-typed Unifield with the given key and value.
-func (u *Unifields) AddUint16(key string, value uint16) {
-	u.Add(valpkg.Uint16(key, value))
-}
-
-// AddUint32 adds an int32-typed Unifield with the given key and value.
-func (u *Unifields) AddUint32(key string, value uint32) {
-	u.Add(valpkg.Uint32(key, value))
-}
-
-// AddUint64 adds a uint64-typed Unifield with the given key and value.
-func (u *Unifields) AddUint64(key string, value uint64) {
-	u.Add(valpkg.Uint64(key, value))
-}
-
-// AddFloat32 adds a float32-typed Unifield with the given key and value.
-func (u *Unifields) AddFloat32(key string, value float32) {
-	u.Add(valpkg.Float32(key, value))
-}
-
-// AddFloat64 adds a float64-typed Unifield with the given key and value.
-func (u *Unifields) AddFloat64(key string, value float64) {
-	u.Add(valpkg.Float64(key, value))
-}
-
-// AddErr adds an error-typed Unifield with the given key and value.
-func (u *Unifields) AddErr(key string, value error) {
-	u.Add(valpkg.Err(key, value))
-}
-
-// AddTime adds a time.Time-typed Unifield with the given key and value.
-func (u *Unifields) AddTime(key string, value time.Time) {
-	u.Add(valpkg.Time(key, value))
 }
 
 // Len returns the number of items in the collection.
