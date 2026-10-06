@@ -10,7 +10,7 @@ A Go library providing a `zapcore.Field`-like typed value container called **Uni
 - **15 supported types**: string, integers (`int`, `int8`–`int64`, `uint`, `uint8`–`uint64`), floats (`float32`, `float64`), `error`, and `time.Time`
 - **Flat storage** — one struct, no heap allocation per field (val variant)
 - **Typed deserialization** via `MarshalTo*` methods with descriptive errors on type mismatch
-- **Immutable collection** — accepts both `val.Unifield` and `ptr.UnifieldPtr` via [Unifielder](./pkg/unifields/unifielder/doc.go) interface
+- **Immutable collection** — accepts both `val.Unifield` and `ptr.UnifieldPtr` via [Unifielder](./pkg/unifields/unifielder/common.go) interface
 - **Zero allocations** when used as pure value types
 
 ## Installation
@@ -143,7 +143,7 @@ pkg/unifields/
 ├── unified_fields.go             # Deprecated Unifields collection + Unifielder interface alias
 ├── unified_fields_test.go        # Collection tests (polymorphic val/ptr)
 ├── unifielder/
-│   └── doc.go                    # Unifielder interface definition
+│   └── common.go                 # Unifielder interface definition
 ├─️ val/
 │   ├── unified_field.go          # Unifield struct, factories, Clone(), MarshalTo*
 │   ├── unified_field_test.go     # Val unit tests

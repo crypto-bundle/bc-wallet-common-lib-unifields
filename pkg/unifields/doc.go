@@ -149,7 +149,7 @@
 // ├── unified_fields_test.go        → Collection tests (polymorphic val/ptr)
 // └── unifielder/
 //
-//	└── doc.go                    → Unifielder interface definition
+//	└── common.go               → Unifielder interface definition
 //
 // └─️ val/
 //
@@ -165,7 +165,6 @@
 //	├── unified_field_ptr.go      → UnifieldPtr struct, factories, Clone(), MarshalTo*
 //	├── unified_field_ptr_test.go → UnifieldPtr unit tests
 //	├─️ unified_field_ptr_benchmark_test.go → Ptr benchmarks
-//	└── doc.go                    → Ptr package godoc (detailed API reference)
 //
 // ```
 //

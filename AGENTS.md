@@ -26,8 +26,8 @@ pkg/unifields/
 ├── unitfield_list.go               # UnitfieldList type, NewUnitfieldList, 17 typed adders
 ├── unified_fields.go             # Deprecated Unifields collection + Unifielder interface alias
 ├── unified_fields_test.go        # Collection tests (polymorphic val/ptr)
-└── unifielder/
-    └── doc.go                    # Unifielder interface definition
+├── unifielder/
+│   └── common.go                 # Unifielder interface definition
 └─️ val/
     ├── unified_field.go          # Unifield struct, factories, Clone(), MarshalTo*
     ├── unified_field_test.go     # Val unit tests
@@ -39,7 +39,6 @@ pkg/unifields/
     ├── unified_field_ptr.go      # UnifieldPtr struct, factories, Clone(), MarshalTo*
     ├── unified_field_ptr_test.go # Ptr unit tests
     ├─️ unified_field_ptr_benchmark_test.go # Ptr benchmarks
-    └── doc.go                    # Ptr package godoc (detailed API reference)
 ```
 
 ### Supported types
@@ -97,7 +96,7 @@ type UnifieldPtr struct { //nolint:govet // alignment constrained by string+erro
 Field layout totals ~80 bytes. Due to alignment constraints with string header (16B) and error interface (16B), rearranging fields would break intentional grouping.
 
 ### Interface abstraction (`Unifielder`)
-The shared [Unifielder](./unifielder/doc.go) interface enables polymorphic collection storage:
+The shared [Unifielder](./unifielder/common.go) interface enables polymorphic collection storage:
 ```go
 type Unifielder interface {
     Clone() Unifielder
