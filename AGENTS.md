@@ -16,7 +16,7 @@ This repo contains **three** packages under `pkg/unifields/`:
 
 **Quick access:** Consumers can use factory functions directly from `pkg/unifields/` without importing sub-packages: `unifields.String(...)`, `unifields.Int(...)`, etc. These wrap `val.` internally for zero-allocation usage. Both `val.Unifield` and `ptr.UnifieldPtr` share the same 15 supported types and identical API conventions. Use `val` for zero-allocation hot paths; use `ptr` when pointer identity or deferred binding is needed.
 
-For collections, prefer [`UnitfieldList`](./pkg/unifields/) — the recommended collection with list-manipulation methods (`Merge`, `GetAfter`, `RemoveAfter`, `RemoveBefore`, `Clear`). The legacy `Unifolds` type remains for backward compatibility but is deprecated.
+For collections, prefer [`UnitfieldList`](./pkg/unifields/) — the recommended collection with list-manipulation methods (`Merge`, `GetAfter`, `RemoveAfter`, `RemoveBefore`, `Clear`). The legacy `Unifields` type remains for backward compatibility but is deprecated.
 
 ### File layout
 
@@ -24,7 +24,7 @@ For collections, prefer [`UnitfieldList`](./pkg/unifields/) — the recommended 
 pkg/unifields/
 ├── unified_field.go                # Type alias (Unifield = val.Unifield) + 15 factory wrappers
 ├── unitfield_list.go               # UnitfieldList type, NewUnitfieldList, 17 typed adders
-├── unified_fields.go             # Deprecated Unifolds collection + Unifielder interface alias
+├── unified_fields.go             # Deprecated Unifields collection + Unifielder interface alias
 ├── unified_fields_test.go        # Collection tests (polymorphic val/ptr)
 └── unifielder/
     └── doc.go                    # Unifielder interface definition
@@ -252,7 +252,7 @@ Group tests by target file:
 - `val/unified_field_test.go`: factory + Clone + MarshalTo + error cases (same coverage as ptr)
 - `ptr/unified_field_ptr_test.go`: factory + Clone + MarshalTo + empty access + error cases
 - `val/unified_field_list_test.go`: all UnitfieldList methods — Add, AddAll, Merge (two-lists, self, empty-source, single-element, zero-value receiver), GetAfter (zero/middle/boundary/out-of-range/extra-out), RemoveAfter (keep-head, last-index, out-of-range, extra-out, single-element), RemoveBefore (keep-tail, index-zero, out-of-range, extra-out, single-element), Clear, Items (read-only), polymorphic mix
-- `unified_fields_test.go`: NewUnifolds, Add, AddAll, polymorphic val/ptr, AddVal/AddPtr typed tests, ItemsReadOnly, UnitfolderListNew/Typed tests
+- `unified_fields_test.go`: NewUnifields, Add, AddAll, polymorphic val/ptr, AddVal/AddPtr typed tests, ItemsReadOnly, UnitfolderListNew/Typed tests
 
 Each supported type needs: positive test, type-mismatch negative, nil-dst negative, zero-value test.
 

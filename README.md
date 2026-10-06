@@ -6,7 +6,7 @@ A Go library providing a `zapcore.Field`-like typed value container called **Uni
 
 - **Two implementations**: value-based (`val.Unifield`) and pointer-based (`ptr.UnifieldPtr`)
 - **Recommended collection**: [`UnitfieldList`](./pkg/unifields/) with list manipulation methods (`Merge`, `GetAfter`, `RemoveAfter`, `RemoveBefore`, `Clear`)
-- **Legacy collection**: `Unifolds` (deprecated in favor of `UnitfieldList`)
+- **Legacy collection**: `Unifields` (deprecated in favor of `UnitfieldList`)
 - **15 supported types**: string, integers (`int`, `int8`–`int64`, `uint`, `uint8`–`uint64`), floats (`float32`, `float64`), `error`, and `time.Time`
 - **Flat storage** — one struct, no heap allocation per field (val variant)
 - **Typed deserialization** via `MarshalTo*` methods with descriptive errors on type mismatch
@@ -66,12 +66,12 @@ err := f3.MarshalToStr(nil)   // ErrDstNil
 
 `Clone()` returns a shallow copy implementing [Unifielder]. Modifying the original does not affect the clone's stored values (for val types; ptr types share the same underlying pointers since Clone only copies the struct, not heap data).
 
-### Collection — Unifolds (legacy)
+### Collection — Unifields (legacy)
 
-The `Unifolds` type provides an immutable collection wrapper that accepts any [Unifielder] interface, allowing mixed-val/ptr collections:
+The `Unifields` type provides an immutable collection wrapper that accepts any [Unifielder] interface, allowing mixed-val/ptr collections:
 
 ```go
-cols := unifields.NewUnifolds()
+cols := unifields.NewUnifields()
 cols.Add(unifields.String("name", "alice"))   // val.Unifield via Unifielder
 cols.Add(unifields.Int("count", 42))          // val.Unifield via Unifielder
 
@@ -80,7 +80,7 @@ items := cols.Items()                         // []Unifielder
 ```
 
 Available methods:
-- `NewUnifolds()` — creates an empty collection
+- `NewUnifields()` — creates an empty collection
 - `Add(fld Unifielder)` — adds a cloned Unifielder (supports both val and ptr)
 - `AddAll(flds []Unifielder)` — bulk adds cloned Unifielders
 - `Len()` — returns item count
@@ -140,7 +140,7 @@ See `.agents/reports/benchmarks_val_unifield.md` for detailed benchmark results.
 pkg/unifields/
 ├── unified_field.go              # Type alias + factory wrappers
 ├── unitfield_list.go             # UnitfieldList type, NewUnitfieldList, 17 typed adders
-├── unified_fields.go             # Deprecated Unifolds collection + Unifielder interface alias
+├── unified_fields.go             # Deprecated Unifields collection + Unifielder interface alias
 ├── unified_fields_test.go        # Collection tests (polymorphic val/ptr)
 ├── unifielder/
 │   └── doc.go                    # Unifielder interface definition
@@ -228,13 +228,13 @@ Cross-type-compatible methods accept ranges of types sharing the same backing fi
 - `MarshalToUint` / `MarshalToUint64` accept any unsigned integer type
 - `MarshalToFloat32` / `MarshalToFloat64` accept either (they share `f64` backing field)
 
-## Deprecated — Unifolds
+## Deprecated — Unifields
 
-The legacy `Unifolds` type remains in the codebase for backward compatibility but is deprecated. All typed adders have been migrated exclusively to `UnitfieldList`. Migrate your code at convenience:
+The legacy `Unifields` type remains in the codebase for backward compatibility but is deprecated. All typed adders have been migrated exclusively to `UnitfieldList`. Migrate your code at convenience:
 
 ```go
 // Old (still works):
-cols := unifields.NewUnifolds()
+cols := unifields.NewUnifields()
 cols.Add(unifields.String("key", "value"))
 
 // New (recommended):

@@ -40,7 +40,7 @@
 //
 // Both implementations implement the [Unifielder] interface, allowing them to be mixed
 // freely inside a single [UnitfieldList] collection. For new code, prefer [UnitfieldList]
-// over the legacy [Unifolds] type.
+// over the legacy [Unifields] type.
 //
 // # Creating Typed Values
 //
@@ -94,16 +94,16 @@
 //	list.RemoveBefore(2)                      // drop items before index 2
 //	list.Clear()                              // reset to empty
 //
-// ## Unifolds (deprecated)
+// ## Unifields (deprecated)
 //
-// The legacy [Unifolds] type remains for backward compatibility:
+// The legacy [Unifields] type remains for backward compatibility:
 //
-//	cols := unifields.NewUnifolds()
+//	cols := unifields.NewUnifields()
 //	cols.Add(val.String("name", "alice"))       // val.Unifield via Unifielder
 //	cols.Add(ptr.Int("count", 42))              // ptr.UnifieldPtr via Unifielder
 //
 // Available methods for both collections:
-//   - NewUnitfieldList() / NewUnifolds() — creates an empty collection
+//   - NewUnitfieldList() / NewUnifields() — creates an empty collection
 //   - Add(fld Unifielder) — adds a cloned Unifielder (supports both val and ptr)
 //   - AddAll(flds []Unifielder) — bulk adds cloned Unifielders
 //   - Len() — returns item count
@@ -145,7 +145,7 @@
 // ├── doc.go                        → Package-level godoc + AI reference
 // ├── unified_field.go              → Type alias (Unifield = val.Unifield) + 15 factory wrappers
 // ├── unitfield_list.go             → UnitfieldList type, NewUnitfieldList, 17 typed adders
-// ├── unified_fields.go             → Deprecated Unifolds collection + Unifielder interface alias
+// ├── unified_fields.go             → Deprecated Unifields collection + Unifielder interface alias
 // ├── unified_fields_test.go        → Collection tests (polymorphic val/ptr)
 // └── unifielder/
 //
