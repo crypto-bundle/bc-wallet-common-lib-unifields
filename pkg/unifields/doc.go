@@ -143,7 +143,8 @@
 // ```text
 // pkg/unifields/
 // ├── doc.go                        → Package-level godoc + AI reference
-// ├── unified_field.go              → Type alias (Unifield = val.Unifield) + 15 factory wrappers + UnitfieldList bridge
+// ├── unified_field.go              → Type alias (Unifield = val.Unifield) + 15 factory wrappers
+// ├── unitfield_list.go             → UnitfieldList type, NewUnitfieldList, 17 typed adders
 // ├── unified_fields.go             → Deprecated Unifolds collection + Unifielder interface alias
 // ├── unified_fields_test.go        → Collection tests (polymorphic val/ptr)
 // └── unifielder/
@@ -206,7 +207,7 @@
 // 3. Create factory function in val/ (`func NewType(key string, val Type) Unifield`)
 // 4. Create `MarshalToType(dst *Type) error` receiver method in val/
 // 5. Repeat steps 1-4 for ptr/ (`UnifieldPtr` variant)
-// 6. Add Add<Type>() method to `pkg/unifields/unified_field.go` (delegates to val factory on UnitfieldList)
+// 6. Add Add<Type>() method to `pkg/unifields/unitfield_list.go` (delegates to val factory on UnitfieldList)
 // 7. Add test cases to both `pkg/unifields/val/unified_field_test.go` and `pkg/unifields/ptr/unified_field_ptr_test.go`
 // 8. Update `typeName()` switch in both val/ and ptr/ with new case label
 // 9. Update helper predicates (`isSignedInt` / `isUnsignedInt`) if type belongs to range

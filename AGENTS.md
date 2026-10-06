@@ -22,7 +22,8 @@ For collections, prefer [`UnitfieldList`](./pkg/unifields/) — the recommended 
 
 ```text
 pkg/unifields/
-├── unified_field.go                # Type alias (Unifield = val.Unifield) + 15 factory wrappers + UnitfieldList bridge
+├── unified_field.go                # Type alias (Unifield = val.Unifield) + 15 factory wrappers
+├── unitfield_list.go               # UnitfieldList type, NewUnitfieldList, 17 typed adders
 ├── unified_fields.go             # Deprecated Unifolds collection + Unifielder interface alias
 ├── unified_fields_test.go        # Collection tests (polymorphic val/ptr)
 └── unifielder/
