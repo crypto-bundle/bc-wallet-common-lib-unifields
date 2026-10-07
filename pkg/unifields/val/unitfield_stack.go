@@ -22,12 +22,14 @@
 //
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 package val
 
 import (
+	"sync"
+
 	unifolderv2 "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/unifielder"
 )
 
@@ -36,6 +38,12 @@ import (
 // All read/pop operations return the [unifolderv2.Unifielder] interface, enabling polymorphic storage
 // of both [val.Unifield] and [ptr.UnifieldPtr]. Empty-stack behavior returns nil — no panics,
 // no zero-value structs. Callers must check results before use.
+//
+// Thread safety: UnitfieldStack is safe for concurrent access by multiple goroutines.
+// All exported methods acquire an internal [sync.RWMutex]: write operations (Push, PushFields,
+// Pop, PopN, Clear) use exclusive Lock, while read-only operations (Len, GetTop, Peek) use
+// shared RLock, allowing concurrent readers. Private *NoLock variants exist for internal use
+// when the caller already holds the lock.
 //
 // # Usage Example
 //
@@ -47,6 +55,7 @@ import (
 //	all := stack.PopN(3)                                // pop up to 3 elements
 //	stack.Clear()                                       // empty the stack
 type UnitfieldStack struct {
+	mu    sync.RWMutex
 	items []unifolderv2.Unifielder
 }
 
@@ -57,7 +66,17 @@ func NewUnitfieldStack() *UnitfieldStack {
 
 // Push adds a single Unifielder onto the top of the stack.
 // Accepts both val.Unifield and ptr.UnifieldPtr via the [unifolderv2.Unifielder] interface.
+// Thread-safe: acquires exclusive lock.
 func (s *UnitfieldStack) Push(fld unifolderv2.Unifielder) {
+	s.mu.Lock() //nolint:errcheck // Lock never returns error
+	defer s.mu.Unlock()
+
+	s.pushNoLock(fld)
+}
+
+// pushNoLock adds fld assuming the caller already holds s.mu.Lock().
+// Not safe to call without external lock.
+func (s *UnitfieldStack) pushNoLock(fld unifolderv2.Unifielder) {
 	s.items = append(s.items, fld.Clone())
 }
 
@@ -65,7 +84,17 @@ func (s *UnitfieldStack) Push(fld unifolderv2.Unifielder) {
 // Each element is cloned before storage to maintain immutability — modifying
 // a caller-supplied Unifielder after this call does not affect the stack's contents.
 // If fields is nil or empty, this is a no-op.
+// Thread-safe: acquires exclusive lock.
 func (s *UnitfieldStack) PushFields(fields ...unifolderv2.Unifielder) {
+	s.mu.Lock() //nolint:errcheck
+	defer s.mu.Unlock()
+
+	s.pushFieldsNoLock(fields)
+}
+
+// pushFieldsNoLock adds fields assuming the caller already holds s.mu.Lock().
+// Not safe to call without external lock.
+func (s *UnitfieldStack) pushFieldsNoLock(fields []unifolderv2.Unifielder) {
 	if len(fields) == 0 {
 		return
 	}
@@ -77,7 +106,21 @@ func (s *UnitfieldStack) PushFields(fields ...unifolderv2.Unifielder) {
 // Pop removes and returns the top element from the stack.
 // Returns nil when the stack is empty. Follows the [UnitfieldList] convention:
 // single return value, nil on empty, never panics.
-func (s *UnitfieldStack) Pop() unifolderv2.Unifielder { //nolint:ireturn //nolint:ireturn
+// Thread-safe: acquires exclusive lock.
+func (s *UnitfieldStack) Pop() unifolderv2.Unifielder { //nolint:ireturn
+	n := len(s.items)
+	if n == 0 {
+		return nil
+	}
+	idx := n - 1
+	result := s.items[idx]
+	s.items = s.items[:idx]
+	return result
+}
+
+// popNoLock removes and returns the top element assuming the caller already holds s.mu.Lock().
+// Not safe to call without external lock.
+func (s *UnitfieldStack) popNoLock() unifolderv2.Unifielder { //nolint:ireturn
 	n := len(s.items)
 	if n == 0 {
 		return nil
@@ -89,7 +132,7 @@ func (s *UnitfieldStack) Pop() unifolderv2.Unifielder { //nolint:ireturn //nolin
 }
 
 // PopField is an alias for [Pop]. Both names perform the same operation.
-func (s *UnitfieldStack) PopField() unifolderv2.Unifielder { //nolint:ireturn //nolint:ireturn
+func (s *UnitfieldStack) PopField() unifolderv2.Unifielder { //nolint:ireturn
 	return s.Pop()
 }
 
@@ -97,7 +140,17 @@ func (s *UnitfieldStack) PopField() unifolderv2.Unifielder { //nolint:ireturn //
 // Returns nil when the stack is empty or count <= 0.
 // When count exceeds the stack length, all elements are popped.
 // Elements are returned in bottom-to-top order (slice order), not reversed LIFO.
+// Thread-safe: acquires exclusive lock.
 func (s *UnitfieldStack) PopN(count int) []unifolderv2.Unifielder {
+	s.mu.Lock() //nolint:errcheck
+	defer s.mu.Unlock()
+
+	return s.popNNolock(count)
+}
+
+// popNNolock pops count elements assuming the caller already holds s.mu.Lock().
+// Not safe to call without external lock.
+func (s *UnitfieldStack) popNNolock(count int) []unifolderv2.Unifielder {
 	if count <= 0 || len(s.items) == 0 {
 		return nil
 	}
@@ -113,19 +166,49 @@ func (s *UnitfieldStack) PopN(count int) []unifolderv2.Unifielder {
 
 // Clear removes all elements from the stack, resetting the internal slice to empty.
 // Subsequent calls to Len() return 0. No effect when the stack is already empty.
+// Thread-safe: acquires exclusive lock.
 func (s *UnitfieldStack) Clear() {
+	s.mu.Lock() //nolint:errcheck
+	defer s.mu.Unlock()
+
+	s.clearNoLock()
+}
+
+// clearNoLock clears the stack assuming the caller already holds s.mu.Lock().
+// Not safe to call without external lock.
+func (s *UnitfieldStack) clearNoLock() {
 	s.items = s.items[:0]
 }
 
 // Len returns the number of elements currently stored in the stack.
+// Thread-safe: acquires shared read lock, allowing concurrent reads.
 func (s *UnitfieldStack) Len() int {
+	s.mu.RLock() //nolint:errcheck
+	defer s.mu.RUnlock()
+
+	return s.lenNoLock()
+}
+
+// lenNoLock returns the length assuming the caller already holds s.mu.RLock().
+// Not safe to call without external read lock.
+func (s *UnitfieldStack) lenNoLock() int {
 	return len(s.items)
 }
 
 // GetTop returns the top element of the stack without removing it.
 // Returns nil when the stack is empty. Follows the [UnitfieldList] convention:
 // single return value, nil on empty, never panics.
-func (s *UnitfieldStack) GetTop() unifolderv2.Unifielder { //nolint:ireturn //nolint:ireturn
+// Thread-safe: acquires shared read lock, allowing concurrent reads.
+func (s *UnitfieldStack) GetTop() unifolderv2.Unifielder { //nolint:ireturn
+	s.mu.RLock() //nolint:errcheck
+	defer s.mu.RUnlock()
+
+	return s.getTopNoLock()
+}
+
+// getTopNoLock returns the top element assuming the caller already holds s.mu.RLock().
+// Not safe to call without external read lock.
+func (s *UnitfieldStack) getTopNoLock() unifolderv2.Unifielder { //nolint:ireturn
 	n := len(s.items)
 	if n == 0 {
 		return nil
@@ -134,6 +217,10 @@ func (s *UnitfieldStack) GetTop() unifolderv2.Unifielder { //nolint:ireturn //no
 }
 
 // Peek is an alias for [GetTop]. Both names peek at the top element without popping.
-func (s *UnitfieldStack) Peek() unifolderv2.Unifielder { //nolint:ireturn //nolint:ireturn
-	return s.GetTop()
+// Thread-safe: acquires shared read lock.
+func (s *UnitfieldStack) Peek() unifolderv2.Unifielder { //nolint:ireturn
+	s.mu.RLock() //nolint:errcheck
+	defer s.mu.RUnlock()
+
+	return s.getTopNoLock()
 }
