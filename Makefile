@@ -3,4 +3,7 @@ default: lint
 lint:
 	golangci-lint run --config .golangci.yml -v ./...
 
-.PHONY: lint
+test:
+	go test -v -race -cover ./...
+
+.PHONY: lint test

@@ -35,7 +35,7 @@ import (
 )
 
 // TestNewUnifieldStack verifies that the constructor returns a non-nil pointer with Len()==0.
-func TestNewUnifieldStack(t *testing.T) { //nolint:paralleltest
+func TestNewUnifieldStack(t *testing.T) {
 	t.Parallel()
 
 	stack := NewUnifieldStack()
@@ -48,7 +48,7 @@ func TestNewUnifieldStack(t *testing.T) { //nolint:paralleltest
 }
 
 // TestPush verifies single and multiple push operations with LIFO ordering.
-func TestPush(t *testing.T) { //nolint:paralleltest
+func TestPush(t *testing.T) {
 	t.Parallel()
 
 	stack := NewUnifieldStack()
@@ -76,7 +76,7 @@ func TestPush(t *testing.T) { //nolint:paralleltest
 }
 
 // TestPushFields verifies variadic push preserves order and count.
-func TestPushFields(t *testing.T) { //nolint:paralleltest
+func TestPushFields(t *testing.T) {
 	t.Parallel()
 
 	stack := NewUnifieldStack()
@@ -98,7 +98,7 @@ func TestPushFields(t *testing.T) { //nolint:paralleltest
 }
 
 // TestPushFieldsNilSlice ensures nil/empty input is a no-op.
-func TestPushFieldsNilSlice(t *testing.T) { //nolint:paralleltest
+func TestPushFieldsNilSlice(t *testing.T) {
 	t.Parallel()
 
 	stack := NewUnifieldStack()
@@ -115,7 +115,7 @@ func TestPushFieldsNilSlice(t *testing.T) { //nolint:paralleltest
 }
 
 // TestPop verifies positive path, empty stack behavior, and LIFO guarantee.
-func TestPop(t *testing.T) { //nolint:paralleltest
+func TestPop(t *testing.T) {
 	t.Parallel()
 
 	stack := NewUnifieldStack()
@@ -156,7 +156,7 @@ func TestPop(t *testing.T) { //nolint:paralleltest
 }
 
 // TestPopField verifies PopField behaves identically to Pop.
-func TestPopField(t *testing.T) { //nolint:paralleltest
+func TestPopField(t *testing.T) {
 	t.Parallel()
 
 	stack := NewUnifieldStack()
@@ -181,7 +181,7 @@ func TestPopField(t *testing.T) { //nolint:paralleltest
 }
 
 // TestPopN verifies batch pop with various edge cases.
-func TestPopN(t *testing.T) { //nolint:paralleltest
+func TestPopN(t *testing.T) {
 	t.Parallel()
 
 	stack := NewUnifieldStack()
@@ -241,7 +241,7 @@ func TestPopN(t *testing.T) { //nolint:paralleltest
 }
 
 // TestGetTop verifies peeking works without mutation.
-func TestGetTop(t *testing.T) { //nolint:paralleltest
+func TestGetTop(t *testing.T) {
 	t.Parallel()
 
 	stack := NewUnifieldStack()
@@ -278,7 +278,7 @@ func TestGetTop(t *testing.T) { //nolint:paralleltest
 }
 
 // TestPeek verifies Peek is identical to GetTop.
-func TestPeek(t *testing.T) { //nolint:paralleltest
+func TestPeek(t *testing.T) {
 	t.Parallel()
 
 	stack := NewUnifieldStack()
@@ -311,7 +311,7 @@ func TestPeek(t *testing.T) { //nolint:paralleltest
 }
 
 // TestClear verifies Clear empties the stack completely.
-func TestClear(t *testing.T) { //nolint:paralleltest
+func TestClear(t *testing.T) {
 	t.Parallel()
 
 	stack := NewUnifieldStack()
@@ -339,7 +339,7 @@ func TestClear(t *testing.T) { //nolint:paralleltest
 }
 
 // TestLen verifies Len tracks mutations correctly.
-func TestLen(t *testing.T) { //nolint:paralleltest
+func TestLen(t *testing.T) {
 	t.Parallel()
 
 	stack := NewUnifieldStack()
@@ -374,7 +374,7 @@ func TestLen(t *testing.T) { //nolint:paralleltest
 }
 
 // TestMixedTypes verifies storing different typed Unifields and polymorphic val/ptr mixing.
-func TestMixedTypes(t *testing.T) { //nolint:paralleltest
+func TestMixedTypes(t *testing.T) {
 	t.Parallel()
 
 	stack := NewUnifieldStack()
@@ -404,7 +404,7 @@ func TestMixedTypes(t *testing.T) { //nolint:paralleltest
 }
 
 // TestImmutability verifies that external mutations don't affect internal state.
-func TestImmutability(t *testing.T) { //nolint:paralleltest
+func TestImmutability(t *testing.T) {
 	t.Parallel()
 
 	stack := NewUnifieldStack()

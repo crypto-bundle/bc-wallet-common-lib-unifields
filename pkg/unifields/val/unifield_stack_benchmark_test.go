@@ -135,7 +135,7 @@ func BenchmarkPopN_Large(b *testing.B) {
 	b.ReportAllocs()
 	for range b.N {
 		s := NewUnifieldStack()
-		for j := 0; j < 1000; j++ {
+		for j := range 1000 {
 			s.Push(Int("k", j))
 		}
 		_ = s.PopN(500)
