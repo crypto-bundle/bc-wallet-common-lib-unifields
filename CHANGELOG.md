@@ -1,5 +1,18 @@
 # Change Log
 
+## [v0.0.6] — 2026-10-08
+
+### Added
+- `UnifieldStack` now supports safe concurrent access from multiple goroutines using `sync.RWMutex`. Write methods acquire exclusive locks; read-only methods use shared read locks for better throughput under contention.
+
+### Changed
+- Renamed `UnitfieldStack` → `UnifieldStack` throughout the codebase for consistency with the `val.Unifield` type name. All constructors, method receivers, tests, benchmarks, and documentation updated accordingly.
+- Public stack methods delegate to private `*NoLock` variants that assume the caller holds the lock, keeping critical sections tight.
+
+### Fixed
+- Data race condition in `UnifieldStack` when accessed concurrently from multiple goroutines — eliminated by adding `sync.RWMutex` protection to all exported methods.
+
+
 ## [v0.0.5] — 2026-10-07
 
 ### Changed

@@ -94,13 +94,13 @@
 //	list.RemoveBefore(2)                      // drop items before index 2
 //	list.Clear()                              // reset to empty
 //
-// ### UnitfieldStack (LIFO)
+// ### UnifieldStack (LIFO)
 //
-// [UnitfieldStack] is a Last-In-First-Out stack over Unifield values. The top element (last pushed)
+// [UnifieldStack] is a Last-In-First-Out stack over Unifield values. The top element (last pushed)
 // is returned first by Pop and Peek operations. Empty-stack behavior returns zero-value Unifield{} or nil —
 // following the same convention as UnitfieldList methods that return slices.
 //
-//	stack := unifields.NewUnitfieldStack()
+//	stack := unifields.NewUnifieldStack()
 //	stack.Push(unifields.String("key", "value"))
 //	top := stack.Peek()                       // peek without removing
 //	popped := stack.Pop()                     // remove and return top
