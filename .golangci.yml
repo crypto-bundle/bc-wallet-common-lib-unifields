@@ -171,6 +171,14 @@ linters:
           - nlreturn
           - wsl_v5
 
+      - path: unitfield_stack\.go
+        linters:
+          - cyclop
+          - exhaustruct_v5
+          - gosec
+          - nlreturn
+          - wsl_v5
+
       - source: "^* "
         linters:
          - lll
