@@ -122,14 +122,14 @@ Available methods:
 - `Items()` — returns read-only copy of stored items
 - `AddStr`, `AddInt`, `AddInt8`…`AddInt64`, `AddUint`…`AddUint64`, `AddFloat32`, `AddFloat64`, `AddErr`, `AddTime` — typed adders
 
-### Collection — UnitfieldStack (LIFO)
+### Collection — UnifieldStack (LIFO)
 
-[`UnitfieldStack`](./pkg/unifields/) is a Last-In-First-Out stack over [unifolderv2.Unifielder] values. Push methods accept any implementation of the Unifielder interface (`val.Unifield` or `ptr.UnifieldPtr`), enabling polymorphic storage in a single stack. Read/pop operations return `unifolderv2.Unifielder` — callers use `MarshalTo*` methods on the returned interface to extract typed values. Empty-stack behavior returns `nil`.
+[`UnifieldStack`](./pkg/unifields/) is a Last-In-First-Out stack over [unifolderv2.Unifielder] values. Push methods accept any implementation of the Unifielder interface (`val.Unifield` or `ptr.UnifieldPtr`), enabling polymorphic storage in a single stack. Read/pop operations return `unifolderv2.Unifielder` — callers use `MarshalTo*` methods on the returned interface to extract typed values. Empty-stack behavior returns `nil`.
 
 ```go
 import "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields"
 
-stack := unifields.NewUnitfieldStack()
+stack := unifields.NewUnifieldStack()
 
 // Push — accepts any Unifielder (val.String, ptr.Int, etc.)
 stack.Push(unifields.String("key", "value"))         // val.Unifield
@@ -156,8 +156,10 @@ batch := stack.PopN(2)      // []Unifielder; nil if stack empty
 stack.Clear()
 ```
 
+**Thread safety:** All `UnifieldStack` methods are safe for concurrent access from multiple goroutines. Write operations (`Push`, `PushFields`, `Pop`, `PopN`, `Clear`) acquire an exclusive lock; read-only operations (`Len`, `GetTop`, `Peek`) use shared read locks, allowing concurrent readers. See AGENTS.md for the public/private `*NoLock` pattern.
+
 Available methods:
-- `NewUnitfieldStack()` — creates an empty stack
+- `NewUnifieldStack()` — creates an empty stack
 - `Push(fld unifolderv2.Unifielder)` — pushes one element onto the stack (accepts val/ptr)
 - `PushFields(fields ...unifolderv2.Unifielder)` — pushes multiple elements (cloned)
 - `Pop() unifolderv2.Unifielder` — pops and returns the top element; `nil` if empty

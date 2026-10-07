@@ -34,11 +34,11 @@ import (
 	unifolderv2 "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/unifielder"
 )
 
-// TestNewUnitfieldStack verifies that the constructor returns a non-nil pointer with Len()==0.
-func TestNewUnitfieldStack(t *testing.T) { //nolint:paralleltest
+// TestNewUnifieldStack verifies that the constructor returns a non-nil pointer with Len()==0.
+func TestNewUnifieldStack(t *testing.T) { //nolint:paralleltest
 	t.Parallel()
 
-	stack := NewUnitfieldStack()
+	stack := NewUnifieldStack()
 	if stack == nil {
 		t.Fatal("expected non-nil stack")
 	}
@@ -51,7 +51,7 @@ func TestNewUnitfieldStack(t *testing.T) { //nolint:paralleltest
 func TestPush(t *testing.T) { //nolint:paralleltest
 	t.Parallel()
 
-	stack := NewUnitfieldStack()
+	stack := NewUnifieldStack()
 
 	fld := String("a", "alpha")
 	stack.Push(fld)
@@ -79,7 +79,7 @@ func TestPush(t *testing.T) { //nolint:paralleltest
 func TestPushFields(t *testing.T) { //nolint:paralleltest
 	t.Parallel()
 
-	stack := NewUnitfieldStack()
+	stack := NewUnifieldStack()
 
 	fields := []unifolderv2.Unifielder{
 		String("f1", "one"),
@@ -101,7 +101,7 @@ func TestPushFields(t *testing.T) { //nolint:paralleltest
 func TestPushFieldsNilSlice(t *testing.T) { //nolint:paralleltest
 	t.Parallel()
 
-	stack := NewUnitfieldStack()
+	stack := NewUnifieldStack()
 	stack.PushFields() // variadic nil
 	if stack.Len() != 0 {
 		t.Errorf("expected Len() == 0 after nil PushFields, got %d", stack.Len())
@@ -118,7 +118,7 @@ func TestPushFieldsNilSlice(t *testing.T) { //nolint:paralleltest
 func TestPop(t *testing.T) { //nolint:paralleltest
 	t.Parallel()
 
-	stack := NewUnitfieldStack()
+	stack := NewUnifieldStack()
 
 	// Empty stack returns nil
 	empty := stack.Pop()
@@ -159,7 +159,7 @@ func TestPop(t *testing.T) { //nolint:paralleltest
 func TestPopField(t *testing.T) { //nolint:paralleltest
 	t.Parallel()
 
-	stack := NewUnitfieldStack()
+	stack := NewUnifieldStack()
 	stack.Push(String("a", "val"))
 
 	result := stack.PopField()
@@ -184,7 +184,7 @@ func TestPopField(t *testing.T) { //nolint:paralleltest
 func TestPopN(t *testing.T) { //nolint:paralleltest
 	t.Parallel()
 
-	stack := NewUnitfieldStack()
+	stack := NewUnifieldStack()
 
 	// Empty stack -> nil
 	if got := stack.PopN(2); got != nil {
@@ -244,7 +244,7 @@ func TestPopN(t *testing.T) { //nolint:paralleltest
 func TestGetTop(t *testing.T) { //nolint:paralleltest
 	t.Parallel()
 
-	stack := NewUnitfieldStack()
+	stack := NewUnifieldStack()
 
 	// Empty stack -> nil
 	empty := stack.GetTop()
@@ -281,7 +281,7 @@ func TestGetTop(t *testing.T) { //nolint:paralleltest
 func TestPeek(t *testing.T) { //nolint:paralleltest
 	t.Parallel()
 
-	stack := NewUnitfieldStack()
+	stack := NewUnifieldStack()
 
 	// Empty stack
 	peeked := stack.Peek()
@@ -314,7 +314,7 @@ func TestPeek(t *testing.T) { //nolint:paralleltest
 func TestClear(t *testing.T) { //nolint:paralleltest
 	t.Parallel()
 
-	stack := NewUnitfieldStack()
+	stack := NewUnifieldStack()
 	stack.Push(String("a", "1"))
 	stack.Push(Int("b", 2))
 	stack.Push(Float64("c", 3.0))
@@ -342,7 +342,7 @@ func TestClear(t *testing.T) { //nolint:paralleltest
 func TestLen(t *testing.T) { //nolint:paralleltest
 	t.Parallel()
 
-	stack := NewUnitfieldStack()
+	stack := NewUnifieldStack()
 	if stack.Len() != 0 {
 		t.Errorf("expected initial Len() == 0, got %d", stack.Len())
 	}
@@ -377,7 +377,7 @@ func TestLen(t *testing.T) { //nolint:paralleltest
 func TestMixedTypes(t *testing.T) { //nolint:paralleltest
 	t.Parallel()
 
-	stack := NewUnitfieldStack()
+	stack := NewUnifieldStack()
 	stack.Push(String("str", "hello"))
 	stack.Push(Int("int", 42))
 	stack.Push(Float64("float", 3.14))
@@ -407,7 +407,7 @@ func TestMixedTypes(t *testing.T) { //nolint:paralleltest
 func TestImmutability(t *testing.T) { //nolint:paralleltest
 	t.Parallel()
 
-	stack := NewUnitfieldStack()
+	stack := NewUnifieldStack()
 	initial := String("key", "value")
 	stack.Push(initial)
 

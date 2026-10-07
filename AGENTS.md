@@ -16,7 +16,7 @@ This repo contains **three** packages under `pkg/unifields/`:
 
 **Quick access:** Consumers can use factory functions directly from `pkg/unifields/` without importing sub-packages: `unifields.String(...)`, `unifields.Int(...)`, etc. These wrap `val.` internally for zero-allocation usage. Both `val.Unifield` and `ptr.UnifieldPtr` share the same 15 supported types and identical API conventions. Use `val` for zero-allocation hot paths; use `ptr` when pointer identity or deferred binding is needed.
 
-For collections, prefer [`UnitfieldList`](./pkg/unifields/) — the recommended collection with list-manipulation methods (`Merge`, `GetAfter`, `RemoveAfter`, `RemoveBefore`, `Clear`). The legacy `Unifields` type remains for backward compatibility but is deprecated.
+For collections, prefer [`UnitfieldList`](./pkg/unifields/) — the recommended collection with list-manipulation methods (`Merge`, `GetAfter`, `RemoveAfter`, `RemoveBefore`, `Clear`). The legacy `Unifolds` type remains for backward compatibility but is deprecated.
 
 ### File layout
 
@@ -24,7 +24,7 @@ For collections, prefer [`UnitfieldList`](./pkg/unifields/) — the recommended 
 pkg/unifields/
 ├── unified_field.go                # Type alias (Unifield = val.Unifield) + 15 factory wrappers
 ├── unitfield_list.go               # UnitfieldList type, NewUnitfieldList, 17 typed adders
-├── unified_fields.go             # Deprecated Unifields collection + Unifielder interface alias
+├── unified_fields.go             # Deprecated Unifolds collection + Unifielder interface alias
 ├── unified_fields_test.go        # Collection tests (polymorphic val/ptr)
 ├── unifielder/
 │   └── common.go                 # Unifielder interface definition
@@ -35,9 +35,9 @@ pkg/unifields/
     ├── unified_field_list.go     # UnitfieldList type + list manipulation methods
     ├── unified_field_list_test.go         # UnitfieldList unit tests
     └─️ unified_field_list_benchmark_test.go # UnitfieldList benchmarks
-    ├── unitfield_stack.go        # UnitfieldStack LIFO stack with Unifielder interface returns
-    ├── unitfield_stack_test.go   # UnitfieldStack unit tests
-    └── unitfield_stack_benchmark_test.go   # UnitfieldStack benchmarks
+    ├── unitfield_stack.go        # UnifieldStack LIFO stack with sync.RWMutex thread safety
+    ├── unitfield_stack_test.go   # UnifieldStack unit tests (+ 3 concurrent tests)
+    └── unitfield_stack_benchmark_test.go   # UnifieldStack benchmarks
 └─️ ptr/
     ├── unified_field_ptr.go      # UnifieldPtr struct, factories, Clone(), MarshalTo*
     ├── unified_field_ptr_test.go # Ptr unit tests
@@ -63,6 +63,21 @@ pkg/unifields/
 | float64 | `Float64(key, val float64)` | `MarshalToFloat64(dst *float64)` | `AddFloat64` | `f64 float64` | `f64P *float64` |
 | error | `Err(key, val error)` | `MarshalToError(dst *error)` | `AddErr` | `err error` | `errP error` |
 | time.Time | `Time(key, val time.Time)` | `MarshalToTime(dst *time.Time)` | `AddTime` | `tm time.Time` | `tmP *time.Time` |
+
+### Thread safety (`UnifieldStack`)
+
+`UnifieldStack` uses a [`sync.RWMutex`](https://pkg.go.dev/sync#RWMutex) for safe concurrent access from multiple goroutines. Write operations (`Push`, `PushFields`, `Pop`, `PopN`, `Clear`) acquire exclusive `mu.Lock()`. Read-only operations (`Len`, `GetTop`, `Peek`) acquire shared `mu.RLock()`, allowing concurrent readers.
+
+Each exported method delegates to a private `*NoLock` variant that assumes the caller already holds the appropriate lock. Never call a `*NoLock` method without holding the lock — this prevents deadlocks from recursive lock acquisition.
+
+#### Public/private locking matrix
+
+| Exported method | Lock type | Private counterpart |
+|----------------|-----------|---------------------|
+| `Push`, `PushFields`, `Pop`, `PopN`, `Clear` | `mu.Lock()` / `defer mu.Unlock()` | `pushNoLock`, `popNoLock`, `popNNolock`, `clearNoLock` |
+| `Len`, `GetTop`, `Peek` | `mu.RLock()` / `defer mu.RUnlock()` | `lenNoLock`, `getTopNoLock` |
+| `PopField()` | delegates to `Pop()` | N/A (inherits Pop's lock) |
+| `Peek()` | `mu.RLock()` | delegates to `getTopNoLock()` (no separate `peekNoLock`) |
 
 ## Design conventions
 
