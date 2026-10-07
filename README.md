@@ -122,6 +122,49 @@ Available methods:
 - `Items()` — returns read-only copy of stored items
 - `AddStr`, `AddInt`, `AddInt8`…`AddInt64`, `AddUint`…`AddUint64`, `AddFloat32`, `AddFloat64`, `AddErr`, `AddTime` — typed adders
 
+### Collection — UnitfieldStack (LIFO)
+
+[`UnitfieldStack`](./pkg/unifields/) is a Last-In-First-Out stack over Unifield values. The last pushed element is always at the top and returned first by Pop operations. Empty-state behavior follows the UnitfieldList convention: returns zero-value `Unifield{}` or `nil` for slices instead of errors.
+
+```go
+import "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields"
+
+stack := unifields.NewUnitfieldStack()
+
+// Push single element
+stack.Push(unifields.String("key", "value"))
+
+// Push multiple elements at once
+stack.PushFields(
+    unifields.Int("status", 200),
+    unifields.Float64("score", 9.5),
+)
+
+// Peek without removing
+top := stack.Peek()         // same as GetTop() — returns top without popping
+
+// Pop removes and returns the top element
+popped := stack.Pop()       // same as PopField() — LIFO order
+
+// Batch pop up to n elements
+batch := stack.PopN(2)      // pops up to 2 elements; nil if stack empty
+
+// Clear empties the stack
+stack.Clear()
+```
+
+Available methods:
+- `NewUnitfieldStack()` — creates an empty stack
+- `Push(fld Unifield)` — pushes one element onto the stack
+- `PushFields(fields ...Unifield)` — pushes multiple elements (cloned)
+- `Pop() Unifield` — pops and returns the top element; zero-value if empty
+- `PopField() Unifield` — alias for Pop()
+- `PopN(count int) []Unifield` — pops up to `count` elements; nil if empty or `count <= 0`
+- `Peek() Unifield` — synonym for GetTop(), no mutation
+- `GetTop() Unifield` — returns top without removing; zero-value if empty
+- `Clear()` — resets the stack to empty
+- `Len() int` — current number of elements
+
 ## Choosing Between `val` and `ptr`
 
 | Criteria         | `val.Unifield`              | `ptr.UnifieldPtr`          |

@@ -80,9 +80,9 @@
 // does not affect the clone's stored values (for val types; ptr types share the same underlying
 // pointers).
 //
-// # Collections
+// ## Collections
 //
-// ## UnitfieldList (recommended)
+// ### UnitfieldList (recommended)
 //
 // [UnitfieldList] is the recommended collection with list-manipulation capabilities:
 //
@@ -94,7 +94,20 @@
 //	list.RemoveBefore(2)                      // drop items before index 2
 //	list.Clear()                              // reset to empty
 //
-// ## Unifields (deprecated)
+// ### UnitfieldStack (LIFO)
+//
+// [UnitfieldStack] is a Last-In-First-Out stack over Unifield values. The top element (last pushed)
+// is returned first by Pop and Peek operations. Empty-stack behavior returns zero-value Unifield{} or nil —
+// following the same convention as UnitfieldList methods that return slices.
+//
+//	stack := unifields.NewUnitfieldStack()
+//	stack.Push(unifields.String("key", "value"))
+//	top := stack.Peek()                       // peek without removing
+//	popped := stack.Pop()                     // remove and return top
+//	all := stack.PopN(3)                      // pop up to 3 elements
+//	stack.Clear()                             // empty the stack
+//
+// ### Unifields (deprecated)
 //
 // The legacy [Unifields] type remains for backward compatibility:
 //
