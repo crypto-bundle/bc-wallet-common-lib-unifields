@@ -30,6 +30,7 @@ package val
 import (
 	"testing"
 
+	unifolderv2 "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/unifielder"
 	"time"
 )
 
@@ -66,7 +67,7 @@ func BenchmarkPushLarge(b *testing.B) {
 // BenchmarkPushFieldsVariadic measures variadic PushFields throughput.
 func BenchmarkPushFieldsVariadic(b *testing.B) {
 	b.ReportAllocs()
-	fields := []Unifield{
+	fields := []unifolderv2.Unifielder{
 		String("one", "1"), Int("two", 2), Float64("three", 3.0),
 		Uint("four", 4), String("five", "5"),
 	}

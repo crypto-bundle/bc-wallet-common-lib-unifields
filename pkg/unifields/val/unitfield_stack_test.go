@@ -28,6 +28,7 @@
 package val
 
 import (
+	unifolderv2 "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/unifielder"
 	"testing"
 
 	"time"
@@ -52,23 +53,25 @@ func TestPush(t *testing.T) {
 
 	stack := NewUnitfieldStack()
 
-	a := String("a", "alpha")
-	b := Int("b", 42)
-
-	stack.Push(a)
+	fld := String("a", "alpha")
+	stack.Push(fld)
 	if stack.Len() != 1 {
 		t.Errorf("expected Len() == 1, got %d", stack.Len())
 	}
-	if got := stack.GetTop(); !isSameKey(got, "a") {
-		t.Errorf("expected top key == 'a', got %q", fieldKey(got))
+	if got := stack.GetTop(); got == nil {
+		t.Error("expected GetTop to return non-nil after Push")
+	} else if u := got.(Unifield); u.key != "a" {
+		t.Errorf("expected top key == 'a', got %q", u.key)
 	}
 
-	stack.Push(b)
+	stack.Push(Int("b", 42))
 	if stack.Len() != 2 {
 		t.Errorf("expected Len() == 2, got %d", stack.Len())
 	}
-	if got := stack.GetTop(); !isSameKey(got, "b") {
-		t.Errorf("expected top key == 'b' (LIFO), got %q", fieldKey(got))
+	if got := stack.GetTop(); got == nil {
+		t.Error("expected GetTop to return non-nil after double Push")
+	} else if u := got.(Unifield); u.key != "b" {
+		t.Errorf("expected top key == 'b' (LIFO), got %q", u.key)
 	}
 }
 
@@ -78,7 +81,7 @@ func TestPushFields(t *testing.T) {
 
 	stack := NewUnitfieldStack()
 
-	fields := []Unifield{
+	fields := []unifolderv2.Unifielder{
 		String("f1", "one"),
 		Int("f2", 2),
 		Float64("f3", 3.0),
@@ -87,8 +90,10 @@ func TestPushFields(t *testing.T) {
 	if stack.Len() != 3 {
 		t.Fatalf("expected Len() == 3, got %d", stack.Len())
 	}
-	if got := stack.GetTop(); !isSameKey(got, "f3") {
-		t.Errorf("expected top == 'f3' (last pushed), got %q", fieldKey(got))
+	if got := stack.GetTop(); got == nil {
+		t.Error("expected GetTop to return non-nil")
+	} else if u := got.(Unifield); u.key != "f3" {
+		t.Errorf("expected top == 'f3' (last pushed), got %q", u.key)
 	}
 }
 
@@ -102,7 +107,7 @@ func TestPushFieldsNilSlice(t *testing.T) {
 		t.Errorf("expected Len() == 0 after nil PushFields, got %d", stack.Len())
 	}
 
-	var fields []Unifield = nil
+	var fields []unifolderv2.Unifielder = nil
 	stack.PushFields(fields...)
 	if stack.Len() != 0 {
 		t.Errorf("expected Len() == 0 after nil slice PushFields, got %d", stack.Len())
@@ -115,10 +120,10 @@ func TestPop(t *testing.T) {
 
 	stack := NewUnitfieldStack()
 
-	// Empty stack returns zero-value Unifield
+	// Empty stack returns nil
 	empty := stack.Pop()
-	if empty.key != "" {
-		t.Errorf("expected zero-value Unifield on empty pop, got key=%q", empty.key)
+	if empty != nil {
+		t.Errorf("expected nil on empty pop, got %+v", empty)
 	}
 	if stack.Len() != 0 {
 		t.Errorf("expected Len() == 0 after popping empty stack, got %d", stack.Len())
@@ -128,16 +133,22 @@ func TestPop(t *testing.T) {
 	stack.Push(Int("y", 1))
 
 	popped := stack.Pop()
-	if popped.key != "y" {
-		t.Errorf("expected top popped key == 'y' (LIFO), got %q", popped.key)
+	if popped == nil {
+		t.Fatal("expected non-nil Pop result")
+	}
+	if u := popped.(Unifield); u.key != "y" {
+		t.Errorf("expected top popped key == 'y' (LIFO), got %q", u.key)
 	}
 	if stack.Len() != 1 {
 		t.Errorf("expected Len() == 1 after one pop, got %d", stack.Len())
 	}
 
 	popped2 := stack.Pop()
-	if popped2.key != "x" {
-		t.Errorf("expected second pop key == 'x', got %q", popped2.key)
+	if popped2 == nil {
+		t.Fatal("expected non-nil second Pop result")
+	}
+	if u := popped2.(Unifield); u.key != "x" {
+		t.Errorf("expected second pop key == 'x', got %q", u.key)
 	}
 	if stack.Len() != 0 {
 		t.Errorf("expected Len() == 0 after two pops, got %d", stack.Len())
@@ -152,17 +163,20 @@ func TestPopField(t *testing.T) {
 	stack.Push(String("a", "val"))
 
 	result := stack.PopField()
-	if result.key != "a" {
-		t.Errorf("expected key == 'a' from PopField, got %q", result.key)
+	if result == nil {
+		t.Fatal("expected non-nil PopField result")
+	}
+	if u := result.(Unifield); u.key != "a" {
+		t.Errorf("expected key == 'a' from PopField, got %q", u.key)
 	}
 	if stack.Len() != 0 {
 		t.Errorf("expected Len() == 0 after PopField, got %d", stack.Len())
 	}
 
-	// Empty stack returns zero-value
+	// Empty stack returns nil
 	empty := stack.PopField()
-	if empty.key != "" {
-		t.Errorf("expected zero-value on empty PopField, got key=%q", empty.key)
+	if empty != nil {
+		t.Errorf("expected nil on empty PopField, got %+v", empty)
 	}
 }
 
@@ -179,26 +193,29 @@ func TestPopN(t *testing.T) {
 
 	// n <= 0 -> nil
 	if got := stack.PopN(-1); got != nil {
-		t.Errorf("expected nil for n==-1, got %+v", got)
+		t.Errorf("expected nil for n== -1, got %+v", got)
 	}
 	if got := stack.PopN(0); got != nil {
-		t.Errorf("expected nil for n==0, got %+v", got)
+		t.Errorf("expected nil for n== 0, got %+v", got)
 	}
 
 	stack.Push(String("a", "1"))
 	stack.Push(Int("b", 2))
 	stack.Push(Float64("c", 3.0))
 
-	// Pop 2 from 3 elements
-	// Stack items array: [a, b, c] (a at bottom, c at top)
-	// PopN takes s.items[len-count:] = s.items[1:] = [b, c]
-	// Returns in original order (bottom-to-top), NOT reversed LIFO
+	// Pop 2 from 3 elements — returns [b,c] in original array order
 	popped := stack.PopN(2)
+	if popped == nil {
+		t.Fatal("expected non-nil PopN result")
+	}
 	if len(popped) != 2 {
 		t.Fatalf("expected 2 popped, got %d", len(popped))
 	}
-	if popped[0].key != "b" || popped[1].key != "c" {
-		t.Errorf("expected [b,c] (slice order), got keys [%q,%q]", popped[0].key, popped[1].key)
+	if b := popped[0].(Unifield); b.key != "b" {
+		t.Errorf("expected [b,c] (slice order), got keys [%q,%q]", b.key, popped[1].(Unifield).key)
+	}
+	if c := popped[1].(Unifield); c.key != "c" {
+		t.Errorf("expected second element key == 'c', got %q", c.key)
 	}
 	if stack.Len() != 1 {
 		t.Errorf("expected remaining Len() == 1, got %d", stack.Len())
@@ -206,8 +223,11 @@ func TestPopN(t *testing.T) {
 
 	// Remaining element untouched
 	top := stack.GetTop()
-	if top.key != "a" {
-		t.Errorf("expected remaining top == 'a', got %q", top.key)
+	if top == nil {
+		t.Fatal("expected non-nil GetTop after partial PopN")
+	}
+	if u := top.(Unifield); u.key != "a" {
+		t.Errorf("expected remaining top == 'a', got %q", u.key)
 	}
 
 	// Pop more than available -> clamp to all
@@ -226,16 +246,19 @@ func TestGetTop(t *testing.T) {
 
 	stack := NewUnitfieldStack()
 
-	// Empty stack -> zero-value
+	// Empty stack -> nil
 	empty := stack.GetTop()
-	if empty.key != "" {
-		t.Errorf("expected zero-value GetTop on empty stack, got key=%q", empty.key)
+	if empty != nil {
+		t.Errorf("expected nil GetTop on empty stack, got %+v", empty)
 	}
 
 	stack.Push(String("a", "val"))
 	got := stack.GetTop()
-	if got.key != "a" {
-		t.Errorf("expected GetTop == 'a', got %q", got.key)
+	if got == nil {
+		t.Fatal("expected non-nil GetTop after Push")
+	}
+	if u := got.(Unifield); u.key != "a" {
+		t.Errorf("expected GetTop == 'a', got %q", u.key)
 	}
 	if stack.Len() != 1 {
 		t.Errorf("expected GetTop does not mutate, Len() still 1, got %d", stack.Len())
@@ -243,8 +266,11 @@ func TestGetTop(t *testing.T) {
 
 	stack.Push(Int("b", 1))
 	top := stack.GetTop()
-	if top.key != "b" {
-		t.Errorf("expected top after double push == 'b', got %q", top.key)
+	if top == nil {
+		t.Fatal("expected non-nil GetTop")
+	}
+	if u := top.(Unifield); u.key != "b" {
+		t.Errorf("expected top after double push == 'b', got %q", u.key)
 	}
 	if stack.Len() != 2 {
 		t.Errorf("expected GetTop does not reduce length, got %d", stack.Len())
@@ -259,19 +285,25 @@ func TestPeek(t *testing.T) {
 
 	// Empty stack
 	peeked := stack.Peek()
-	if peeked.key != "" {
-		t.Errorf("expected zero-value Peek on empty stack, got key=%q", peeked.key)
+	if peeked != nil {
+		t.Errorf("expected nil Peek on empty stack, got %+v", peeked)
 	}
 
 	stack.Push(String("key", "data"))
 
 	first := stack.Peek()
-	if first.key != "key" {
-		t.Errorf("expected Peek == 'key', got %q", first.key)
+	if first == nil {
+		t.Fatal("expected non-nil Peek")
+	}
+	if u := first.(Unifield); u.key != "key" {
+		t.Errorf("expected Peek == 'key', got %q", u.key)
 	}
 	second := stack.Peek()
-	if second.key != "key" {
-		t.Errorf("expected Peek == 'key' again, got %q", second.key)
+	if second == nil {
+		t.Fatal("expected non-nil second Peek")
+	}
+	if u := second.(Unifield); u.key != "key" {
+		t.Errorf("expected Peek == 'key' again, got %q", u.key)
 	}
 	if stack.Len() != 1 {
 		t.Errorf("expected Peek does not mutate, Len() == 1, got %d", stack.Len())
@@ -292,10 +324,10 @@ func TestClear(t *testing.T) {
 		t.Errorf("expected Len() == 0 after Clear, got %d", stack.Len())
 	}
 
-	// Pop on cleared stack -> zero-value
+	// Pop on cleared stack -> nil
 	popped := stack.Pop()
-	if popped.key != "" {
-		t.Errorf("expected zero-value Pop after Clear, got key=%q", popped.key)
+	if popped != nil {
+		t.Errorf("expected nil Pop after Clear, got %+v", popped)
 	}
 
 	// Multiple Clears should be safe no-ops
@@ -341,7 +373,7 @@ func TestLen(t *testing.T) {
 	}
 }
 
-// TestMixedTypes verifies storing different typed Unifields together.
+// TestMixedTypes verifies storing different typed Unifields and polymorphic val/ptr mixing.
 func TestMixedTypes(t *testing.T) {
 	t.Parallel()
 
@@ -358,8 +390,12 @@ func TestMixedTypes(t *testing.T) {
 
 	for i := 0; i < 5; i++ {
 		popped := stack.Pop()
-		if popped.key == "" {
-			t.Fatalf("pop %d returned zero-value instead of stored element", i)
+		if popped == nil {
+			t.Fatalf("pop %d returned nil instead of stored element", i)
+		}
+		key := popped.(Unifield).key
+		if key == "" {
+			t.Fatalf("pop %d had empty key", i)
 		}
 	}
 	if stack.Len() != 0 {
@@ -379,13 +415,10 @@ func TestImmutability(t *testing.T) {
 	initial.key = "changed"
 
 	top := stack.GetTop()
-	if top.key != "key" {
-		t.Errorf("expected immutable key == 'key', got %q", top.key)
+	if top == nil {
+		t.Fatal("expected non-nil GetTop")
+	}
+	if u := top.(Unifield); u.key != "key" {
+		t.Errorf("expected immutable key == 'key', got %q", u.key)
 	}
 }
-
-// --- helpers ---
-
-func fieldKey(u Unifield) string { return u.key }
-
-func isSameKey(u Unifield, want string) bool { return u.key == want }

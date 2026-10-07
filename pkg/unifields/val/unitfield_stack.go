@@ -27,57 +27,60 @@
 
 package val
 
-// UnitfieldStack is a LIFO (Last-In-First-Out) stack backed by a slice of Unifield values.
+import (
+	unifolderv2 "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/unifielder"
+)
+
+// UnitfieldStack is a LIFO (Last-In-First-Out) stack backed by a slice of [unifolderv2.Unifielder].
 // The last element pushed is considered the most recent and is returned first by Pop, PopN, GetTop, and Peek.
-// Empty-state behavior follows the [UnitfieldList] convention: read operations return zero-value Unifield{} or nil
-// instead of errors when the stack is empty. Callers should check results before use.
+// All read/pop operations return the [unifolderv2.Unifielder] interface, enabling polymorphic storage
+// of both [val.Unifield] and [ptr.UnifieldPtr]. Empty-stack behavior returns nil — no panics,
+// no zero-value structs. Callers must check results before use.
 //
 // # Usage Example
 //
 //	stack := val.NewUnitfieldStack()
-//	stack.Push(val.String("key", "value"))
-//	top := stack.GetTop()        // returns the pushed Unifield
-//	popped := stack.Pop()         // removes and returns the top element
-//	rest := stack.PopN(2)         // pops up to 2 elements
-//	stack.Clear()                 // empties the stack
+//	stack.Push(val.String("key", "value"))             // val.Unifield
+//	stack.Push(ptr.Int("status", 200))                 // ptr.UnifieldPtr (polymorphic!)
+//	top := stack.GetTop()                               // peek without removing
+//	popped := stack.Pop()                               // remove and return top
+//	all := stack.PopN(3)                                // pop up to 3 elements
+//	stack.Clear()                                       // empty the stack
 type UnitfieldStack struct {
-	items []Unifield
+	items []unifolderv2.Unifielder
 }
 
 // NewUnitfieldStack creates a new empty UnitfieldStack with zero-length backing slice.
 func NewUnitfieldStack() *UnitfieldStack {
-	return &UnitfieldStack{items: make([]Unifield, 0)}
+	return &UnitfieldStack{items: make([]unifolderv2.Unifielder, 0)}
 }
 
-// Push adds a single Unifield onto the top of the stack.
-func (s *UnitfieldStack) Push(fld Unifield) {
-	s.items = append(s.items, fld)
+// Push adds a single Unifielder onto the top of the stack.
+// Accepts both val.Unifield and ptr.UnifieldPtr via the [unifolderv2.Unifielder] interface.
+func (s *UnitfieldStack) Push(fld unifolderv2.Unifielder) {
+	s.items = append(s.items, fld.Clone())
 }
 
-// PushFields adds multiple Unifields onto the top of the stack.
+// PushFields adds multiple Unifielders onto the top of the stack.
 // Each element is cloned before storage to maintain immutability — modifying
-// a caller-supplied Unifield after this call does not affect the stack's contents.
+// a caller-supplied Unifielder after this call does not affect the stack's contents.
 // If fields is nil or empty, this is a no-op.
-func (s *UnitfieldStack) PushFields(fields ...Unifield) {
+func (s *UnitfieldStack) PushFields(fields ...unifolderv2.Unifielder) {
 	if len(fields) == 0 {
 		return
 	}
 	for _, f := range fields {
-		c, ok := f.Clone().(Unifield)
-		if !ok {
-			continue
-		}
-		s.items = append(s.items, c)
+		s.items = append(s.items, f.Clone())
 	}
 }
 
 // Pop removes and returns the top element from the stack.
-// Returns zero-value Unifield{} when the stack is empty.
-// Follows the [UnitfieldList] convention: single return value, zero on empty.
-func (s *UnitfieldStack) Pop() Unifield {
+// Returns nil when the stack is empty. Follows the [UnitfieldList] convention:
+// single return value, nil on empty, never panics.
+func (s *UnitfieldStack) Pop() unifolderv2.Unifielder { //nolint:ireturn //nolint:ireturn
 	n := len(s.items)
 	if n == 0 {
-		return Unifield{}
+		return nil
 	}
 	idx := n - 1
 	result := s.items[idx]
@@ -86,15 +89,15 @@ func (s *UnitfieldStack) Pop() Unifield {
 }
 
 // PopField is an alias for [Pop]. Both names perform the same operation.
-func (s *UnitfieldStack) PopField() Unifield {
+func (s *UnitfieldStack) PopField() unifolderv2.Unifielder { //nolint:ireturn //nolint:ireturn
 	return s.Pop()
 }
 
-// PopN removes and returns up to n elements from the top of the stack.
+// PopN removes and returns up to count elements from the top of the stack.
 // Returns nil when the stack is empty or count <= 0.
 // When count exceeds the stack length, all elements are popped.
-// Follows the [UnitfieldList] convention: single return value, nil on empty.
-func (s *UnitfieldStack) PopN(count int) []Unifield {
+// Elements are returned in bottom-to-top order (slice order), not reversed LIFO.
+func (s *UnitfieldStack) PopN(count int) []unifolderv2.Unifielder {
 	if count <= 0 || len(s.items) == 0 {
 		return nil
 	}
@@ -120,17 +123,17 @@ func (s *UnitfieldStack) Len() int {
 }
 
 // GetTop returns the top element of the stack without removing it.
-// Returns zero-value Unifield{} when the stack is empty.
-// Follows the [UnitfieldList] convention: single return value, zero on empty.
-func (s *UnitfieldStack) GetTop() Unifield {
+// Returns nil when the stack is empty. Follows the [UnitfieldList] convention:
+// single return value, nil on empty, never panics.
+func (s *UnitfieldStack) GetTop() unifolderv2.Unifielder { //nolint:ireturn //nolint:ireturn
 	n := len(s.items)
 	if n == 0 {
-		return Unifield{}
+		return nil
 	}
 	return s.items[n-1]
 }
 
 // Peek is an alias for [GetTop]. Both names peek at the top element without popping.
-func (s *UnitfieldStack) Peek() Unifield {
+func (s *UnitfieldStack) Peek() unifolderv2.Unifielder { //nolint:ireturn //nolint:ireturn
 	return s.GetTop()
 }
