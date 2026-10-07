@@ -16,24 +16,32 @@ This repo contains **three** packages under `pkg/unifields/`:
 
 **Quick access:** Consumers can use factory functions directly from `pkg/unifields/` without importing sub-packages: `unifields.String(...)`, `unifields.Int(...)`, etc. These wrap `val.` internally for zero-allocation usage. Both `val.Unifield` and `ptr.UnifieldPtr` share the same 15 supported types and identical API conventions. Use `val` for zero-allocation hot paths; use `ptr` when pointer identity or deferred binding is needed.
 
+For collections, prefer [`UnitfieldList`](./pkg/unifields/) — the recommended collection with list-manipulation methods (`Merge`, `GetAfter`, `RemoveAfter`, `RemoveBefore`, `Clear`). The legacy `Unifields` type remains for backward compatibility but is deprecated.
+
 ### File layout
 
 ```text
 pkg/unifields/
 ├── unified_field.go                # Type alias (Unifield = val.Unifield) + 15 factory wrappers
-├── unified_fields.go             # Unifields collection + Unifielder interface alias
+├── unitfield_list.go               # UnitfieldList type, NewUnitfieldList, 17 typed adders
+├── unified_fields.go             # Deprecated Unifields collection + Unifielder interface alias
 ├── unified_fields_test.go        # Collection tests (polymorphic val/ptr)
-└── unifielder/
-    └── doc.go                    # Unifielder interface definition
+├── unifielder/
+│   └── common.go                 # Unifielder interface definition
 └─️ val/
     ├── unified_field.go          # Unifield struct, factories, Clone(), MarshalTo*
     ├── unified_field_test.go     # Val unit tests
-    └─️ unified_field_benchmark_test.go # Benchmarks (factory, clone, marshal, collection)
+    ├─️ unified_field_benchmark_test.go # Benchmarks (factory, clone, marshal, collection)
+    ├── unified_field_list.go     # UnitfieldList type + list manipulation methods
+    ├── unified_field_list_test.go         # UnitfieldList unit tests
+    └─️ unified_field_list_benchmark_test.go # UnitfieldList benchmarks
+    ├── unitfield_stack.go        # UnitfieldStack LIFO stack with Unifielder interface returns
+    ├── unitfield_stack_test.go   # UnitfieldStack unit tests
+    └── unitfield_stack_benchmark_test.go   # UnitfieldStack benchmarks
 └─️ ptr/
     ├── unified_field_ptr.go      # UnifieldPtr struct, factories, Clone(), MarshalTo*
     ├── unified_field_ptr_test.go # Ptr unit tests
     ├─️ unified_field_ptr_benchmark_test.go # Ptr benchmarks
-    └── doc.go                    # Ptr package godoc (detailed API reference)
 ```
 
 ### Supported types
@@ -91,13 +99,26 @@ type UnifieldPtr struct { //nolint:govet // alignment constrained by string+erro
 Field layout totals ~80 bytes. Due to alignment constraints with string header (16B) and error interface (16B), rearranging fields would break intentional grouping.
 
 ### Interface abstraction (`Unifielder`)
-The shared [Unifielder](./unifielder/doc.go) interface enables polymorphic collection storage:
+The shared [Unifielder](./unifielder/common.go) interface enables polymorphic collection storage:
 ```go
 type Unifielder interface {
     Clone() Unifielder
 }
 ```
 Both `val.Unifield` and `ptr.UnifieldPtr` implement this interface. The return type `Unifielder` allows heterogeneous collections (`[]Unifielder`) without type parameters. See `.agents/plans/003_unifield_val_refactor_plan.md` for architectural rationale.
+
+### UnitfieldList design conventions
+
+[`UnitfieldList`](./pkg/unifields/val/unified_field_list.go) is the recommended collection type with list-manipulation capabilities. It wraps `[]unifolderv2.Unifielder` and provides structured list operations:
+
+**Methods:**
+- `Merge(list UnitfieldList)` — appends each item from `list.items` via `Clone()`. Uses **pointer-receiver** with defensive copy to prevent aliasing through shared backing array. Keys may not be unique across merged result.
+- `GetAfter(index uint) []Unifielder` — returns copy of items from index N (inclusive); graceful no-op when `index >= len`.
+- `RemoveAfter(index uint)` — keeps element at index N, drops N+1..end; graceful no-op when `index >= len`.
+- `RemoveBefore(index uint)` — keeps element at index N, drops 0..N-1; graceful no-op when `index <= 0` or `index >= len`.
+- `Clear()` — resets items slice to empty (zero-capacity).
+
+**Graceful bounds handling:** All index-based methods check bounds and return gracefully rather than panicking on out-of-range indices (`index >= len(items)`).
 
 ### Naming conventions
 - **Factory functions**: bare type names → `String`, `Int`, `Float64`, `Err`, `Time`
@@ -116,6 +137,7 @@ Both `val.Unifield` and `ptr.UnifieldPtr` implement this interface. The return t
 - Collection `Add()` auto-clones input before appending
 - External mutation of returned Unifield does NOT affect collection contents
 - `AddAll(s []Unifielder)` pre-allocates cloned slice to avoid reallocation
+- `Merge()` clones each source item individually, matching `Add()` invariant
 
 ### Float cross-type compatibility
 Both `MarshalToFloat32` and `MarshalToFloat64` accept **either** `valueFloat32` OR `valueFloat64` since they share the same `f64` backing field. Narrowing/widening is implicit.
@@ -188,6 +210,7 @@ make lint                    # golangci-lint run with project rules
 make test                    # go test -race ./...
 go vet ./...                 # static analysis
 go build ./...               # verify compilation
+go test -bench=. -benchmem ./pkg/unifields/... # benchmarks
 ```
 
 ## Code style rules
@@ -230,7 +253,8 @@ func (u Unifield) MarshalTo<Type>(dst *<Type>) error {
 Group tests by target file:
 - `val/unified_field_test.go`: factory + Clone + MarshalTo + error cases (same coverage as ptr)
 - `ptr/unified_field_ptr_test.go`: factory + Clone + MarshalTo + empty access + error cases
-- `unified_fields_test.go`: New, Add, AddAll, polymorphic val/ptr, immutability, typed adders, clone separation
+- `val/unified_field_list_test.go`: all UnitfieldList methods — Add, AddAll, Merge (two-lists, self, empty-source, single-element, zero-value receiver), GetAfter (zero/middle/boundary/out-of-range/extra-out), RemoveAfter (keep-head, last-index, out-of-range, extra-out, single-element), RemoveBefore (keep-tail, index-zero, out-of-range, extra-out, single-element), Clear, Items (read-only), polymorphic mix
+- `unified_fields_test.go`: NewUnifields, Add, AddAll, polymorphic val/ptr, AddVal/AddPtr typed tests, ItemsReadOnly, UnitfolderListNew/Typed tests
 
 Each supported type needs: positive test, type-mismatch negative, nil-dst negative, zero-value test.
 
@@ -240,6 +264,8 @@ For Clone assertions after `Clone()`, note that the method returns `Unifielder` 
 See `.golangci.yml` for full rules. Key exclusions:
 - `_test\.go` → cyclop, exhaustruct_v5, err113, funlen, gocognit, gocritic, goconst, nlreturn, paralleltest, govet, wsl_v5
 - `unified_field\.go`, `unified_field_ptr\.go` → cyclop, exhaustruct_v5, goheader, gosec, nlreturn, ireturn, wsl_v5
+- `unified_fields\.go` → cyclop, exhaustruct_v5, gosec, nlreturn, wsl_v5
+- `unified_field_list\.go` → cyclop, exhaustruct_v5, gosec, nlreturn, wsl_v5
 - `doc\.go` → goheader, gci
 - Source lines starting with `* ` → lll (long lines in comments)
 

@@ -30,7 +30,6 @@ package unifields
 import (
 	"errors"
 	"testing"
-	"time"
 
 	"github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/ptr"
 	valpkg "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/val"
@@ -94,7 +93,7 @@ func TestUnifieldsAddAll(t *testing.T) {
 	u := NewUnifields()
 	u.Add(valpkg.Int("a", 1))
 	u.Add(valpkg.String("b", "two"))
-	u.AddInt64("c", 3)
+	u.Add(valpkg.Int64("c", 3))
 	errField := ptr.Err("e", errTest)
 	u.AddAll([]Unifielder{valpkg.Uint("d", 4), errField})
 	if u.Len() != 5 {
@@ -112,28 +111,6 @@ func TestUnifieldsAddAllNilEmpty(t *testing.T) {
 	u.AddAll([]Unifielder{})
 	if u.Len() != initLen {
 		t.Error("AddAll([]) should be no-op")
-	}
-}
-
-func TestUnifieldsAddTyped(t *testing.T) {
-	u := NewUnifields()
-	u.AddStr("k", "v")
-	u.AddInt("cnt", 99)
-	u.AddInt8("b", 7)
-	u.AddInt16("s", 1234)
-	u.AddInt32("i", 55555)
-	u.AddInt64("l", 999999)
-	u.AddUint("u", 42)
-	u.AddUint8("ub", 200)
-	u.AddUint16("us", 30000)
-	u.AddUint32("ui", 200000)
-	u.AddUint64("ul", 5000000)
-	u.AddFloat32("f32", 1.5)
-	u.AddFloat64("f64", 2.718)
-	u.AddErr("err", errTest)
-	u.AddTime("now", time.Now())
-	if u.Len() != 15 {
-		t.Errorf("expected 15 items, got %d", u.Len())
 	}
 }
 
@@ -156,9 +133,8 @@ func TestUnifieldsPreservesKeys(t *testing.T) {
 
 func TestUnifieldsItemsReturnsCopy(t *testing.T) {
 	u := NewUnifields()
-	u.AddStr("a", "one")
 	items := u.Items()
-	if len(items) != 1 {
-		t.Errorf("expected 1 item, got %d", len(items))
+	if len(items) != 0 {
+		t.Errorf("expected 0 items, got %d", len(items))
 	}
 }

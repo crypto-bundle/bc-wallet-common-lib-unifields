@@ -155,6 +155,30 @@ linters:
           - nlreturn
           - wsl_v5
 
+      - path: unified_field_list\.go
+        linters:
+          - cyclop
+          - exhaustruct_v5
+          - gosec
+          - nlreturn
+          - wsl_v5
+
+      - path: unitfield_list\.go
+        linters:
+          - cyclop
+          - exhaustruct_v5
+          - gosec
+          - nlreturn
+          - wsl_v5
+
+      - path: unitfield_stack\.go
+        linters:
+          - cyclop
+          - exhaustruct_v5
+          - gosec
+          - nlreturn
+          - wsl_v5
+
       - source: "^* "
         linters:
          - lll

@@ -5,10 +5,12 @@ A Go library providing a `zapcore.Field`-like typed value container called **Uni
 ## Features
 
 - **Two implementations**: value-based (`val.Unifield`) and pointer-based (`ptr.UnifieldPtr`)
+- **Recommended collection**: [`UnitfieldList`](./pkg/unifields/) with list manipulation methods (`Merge`, `GetAfter`, `RemoveAfter`, `RemoveBefore`, `Clear`)
+- **Legacy collection**: `Unifields` (deprecated in favor of `UnitfieldList`)
 - **15 supported types**: string, integers (`int`, `int8`–`int64`, `uint`, `uint8`–`uint64`), floats (`float32`, `float64`), `error`, and `time.Time`
 - **Flat storage** — one struct, no heap allocation per field (val variant)
 - **Typed deserialization** via `MarshalTo*` methods with descriptive errors on type mismatch
-- **Immutable collection** (`Unifields`) — accepts both `val.Unifield` and `ptr.UnifieldPtr` via [Unifielder](./pkg/unifields/unifielder/doc.go) interface
+- **Immutable collection** — accepts both `val.Unifield` and `ptr.UnifieldPtr` via [Unifielder](./pkg/unifields/unifielder/common.go) interface
 - **Zero allocations** when used as pure value types
 
 ## Installation
@@ -64,7 +66,7 @@ err := f3.MarshalToStr(nil)   // ErrDstNil
 
 `Clone()` returns a shallow copy implementing [Unifielder]. Modifying the original does not affect the clone's stored values (for val types; ptr types share the same underlying pointers since Clone only copies the struct, not heap data).
 
-### Collection
+### Collection — Unifields (legacy)
 
 The `Unifields` type provides an immutable collection wrapper that accepts any [Unifielder] interface, allowing mixed-val/ptr collections:
 
@@ -72,9 +74,8 @@ The `Unifields` type provides an immutable collection wrapper that accepts any [
 cols := unifields.NewUnifields()
 cols.Add(unifields.String("name", "alice"))   // val.Unifield via Unifielder
 cols.Add(unifields.Int("count", 42))          // val.Unifield via Unifielder
-cols.AddStr("message", "hello")               // backward-compatible typed adder
 
-fmt.Println(cols.Len())                       // 3
+fmt.Println(cols.Len())                       // 2
 items := cols.Items()                         // []Unifielder
 ```
 
@@ -84,7 +85,88 @@ Available methods:
 - `AddAll(flds []Unifielder)` — bulk adds cloned Unifielders
 - `Len()` — returns item count
 - `Items()` — returns read-only copy of stored items
-- `AddStr, AddInt, AddInt8..AddInt64, AddUint..AddUint64, AddFloat32, AddFloat64, AddErr, AddTime` — typed adders
+
+### Collection — UnitfieldList (recommended)
+
+[`UnitfieldList`](./pkg/unifields/) is the recommended collection with list-manipulation capabilities:
+
+```go
+import "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields"
+
+list := unifields.NewUnitfieldList()
+list.AddStr("name", "alice")           // shorthand typed adders
+list.AddInt("count", 42)
+
+// Merge another list into this one
+other := unifields.NewUnitfieldList()
+other.AddStr("key", "value")
+list.Merge(other)
+
+// Split a list by index
+tail := list.GetAfter(0)               // elements from index 0 onward
+list.RemoveAfter(0)                    // keep only element at index 0
+list.RemoveBefore(2)                   // keeps elements from index 2 onward
+list.Clear()                           // drop all elements
+```
+
+Available methods:
+- `NewUnitfieldList()` — creates an empty collection
+- `Add(fld Unifielder)` — adds a cloned Unifielder
+- `AddAll(flds []Unifielder)` — bulk adds cloned Unifielders
+- `Merge(list UnitfieldList)` — appends all items from another list (each element is cloned)
+- `GetAfter(index uint) []Unifielder` — returns copy of items starting from index N (inclusive)
+- `RemoveAfter(index uint)` — keeps element at index, drops everything after it
+- `RemoveBefore(index uint)` — keeps element at index, drops everything before it
+- `Clear()` — resets the list to empty
+- `Len()` — returns item count
+- `Items()` — returns read-only copy of stored items
+- `AddStr`, `AddInt`, `AddInt8`…`AddInt64`, `AddUint`…`AddUint64`, `AddFloat32`, `AddFloat64`, `AddErr`, `AddTime` — typed adders
+
+### Collection — UnitfieldStack (LIFO)
+
+[`UnitfieldStack`](./pkg/unifields/) is a Last-In-First-Out stack over [unifolderv2.Unifielder] values. Push methods accept any implementation of the Unifielder interface (`val.Unifield` or `ptr.UnifieldPtr`), enabling polymorphic storage in a single stack. Read/pop operations return `unifolderv2.Unifielder` — callers use `MarshalTo*` methods on the returned interface to extract typed values. Empty-stack behavior returns `nil`.
+
+```go
+import "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields"
+
+stack := unifields.NewUnitfieldStack()
+
+// Push — accepts any Unifielder (val.String, ptr.Int, etc.)
+stack.Push(unifields.String("key", "value"))         // val.Unifield
+stack.Push(unifields.Int("status", 200))            // val.Unifield
+
+// Peek without removing — returns Unifielder interface
+top := stack.Peek()
+if top != nil {
+    var key string
+    _ = top.MarshalToStr(&key)
+}
+
+// Pop removes and returns the top element
+popped := stack.Pop()
+if popped != nil {
+    var score float64
+    _ = popped.(unifields.Unifield).MarshalToFloat64(&score)
+}
+
+// Batch pop up to n elements
+batch := stack.PopN(2)      // []Unifielder; nil if stack empty
+
+// Clear empties the stack
+stack.Clear()
+```
+
+Available methods:
+- `NewUnitfieldStack()` — creates an empty stack
+- `Push(fld unifolderv2.Unifielder)` — pushes one element onto the stack (accepts val/ptr)
+- `PushFields(fields ...unifolderv2.Unifielder)` — pushes multiple elements (cloned)
+- `Pop() unifolderv2.Unifielder` — pops and returns the top element; `nil` if empty
+- `PopField() unifolderv2.Unifielder` — alias for Pop()
+- `PopN(count int) []unifolderv2.Unifielder` — pops up to `count` elements; `nil` if empty or `count <= 0`
+- `Peek() unifolderv2.Unifielder` — synonym for GetTop(), no mutation
+- `GetTop() unifolderv2.Unifielder` — returns top without removing; `nil` if empty
+- `Clear()` — resets the stack to empty
+- `Len() int` — current number of elements
 
 ## Choosing Between `val` and `ptr`
 
@@ -102,20 +184,24 @@ See `.agents/reports/benchmarks_val_unifield.md` for detailed benchmark results.
 
 ```
 pkg/unifields/
-├── unified_field.go              # Type alias (Unifield = val.Unifield) + 15 factory wrappers
-├── unified_fields.go             # Unifields collection + Unifielder interface alias
+├── unified_field.go              # Type alias + factory wrappers
+├── unitfield_list.go             # UnitfieldList type, NewUnitfieldList, 17 typed adders
+├── unified_fields.go             # Deprecated Unifields collection + Unifielder interface alias
 ├── unified_fields_test.go        # Collection tests (polymorphic val/ptr)
 ├── unifielder/
-│   └── doc.go                    # Unifielder interface definition
+│   └── common.go                 # Unifielder interface definition
 ├─️ val/
 │   ├── unified_field.go          # Unifield struct, factories, Clone(), MarshalTo*
 │   ├── unified_field_test.go     # Val unit tests
-│   └─️ unified_field_benchmark_test.go # Benchmarks (factory, clone, marshal, collection)
+│   ├── unified_field_benchmark_test.go       # Benchmarks (factory, clone, marshal, collection)
+│   ├── unified_field_list.go                 # UnitfieldList type + list manipulation methods
+│   ├── unified_field_list_test.go            # UnitfieldList unit tests
+│   └─️ unified_field_list_benchmark_test.go  # UnitfieldList benchmarks
 └─️ ptr/
-    ├── unified_field_ptr.go      # UnifieldPtr struct, factories, Clone(), MarshalTo*
-    ├── unified_field_ptr_test.go # Ptr unit tests
+    ├── unified_field_ptr.go          # UnifieldPtr struct, factories, Clone(), MarshalTo*
+    ├── unified_field_ptr_test.go     # Ptr unit tests
     ├─️ unified_field_ptr_benchmark_test.go # Ptr benchmarks
-    └── doc.go                    # Ptr package godoc (detailed API reference)
+    └── doc.go                        # Ptr package godoc (detailed API reference)
 ```
 
 ### Import paths
@@ -143,15 +229,15 @@ A type alias `Unifield = val.Unifield` is defined at the parent level so consume
 
 ## Supported types
 
-Both `val.Unifield` and `ptr.UnifieldPtr` support identical APIs for the same 15 types:
+Both `val.Unifield` and `ptr.UnifieldPtr` support identical APIs for the same 15 types. Additionally, `UnitfieldList` exposes typed adders matching each type.
 
-| Type | Factory | Read method | Collection adder |
-|------|---------|-------------|------------------|
+| Type | Factory (val/ptr) | Read method | Collection adder |
+|------|--------------------|-------------|------------------|
 | string | String(key, val) | MarshalToStr(*string) | AddStr |
 | int | Int(key, val) | MarshalToInt(*int) | AddInt |
 | int8 | Int8(key, val) | MarshalToInt8(*int8) | AddInt8 |
 | int16 | Int16(key, val) | MarshalToInt16(*int16) | AddInt16 |
-| int32 | Int32(key, val) | MarshalToInt32(*int32) | AddInt32 |
+| int32 | Int32(key, val) | MarshalToUint16(*uint16) | AddInt16 |
 | int64 | Int64(key, val) | MarshalToInt64(*int64) | AddInt64 |
 | uint | Uint(key, val) | MarshalToUint(*uint) | AddUint |
 | uint8 | Uint8(key, val) | MarshalToUint8(*uint8) | AddUint8 |
@@ -162,6 +248,18 @@ Both `val.Unifield` and `ptr.UnifieldPtr` support identical APIs for the same 15
 | float64 | Float64(key, val) | MarshalToFloat64(*float64) | AddFloat64 |
 | error | Err(key, val) | MarshalToError(*error) | AddErr |
 | time.Time | Time(key, val) | MarshalToTime(*time.Time) | AddTime |
+
+## UnitfieldList methods
+
+[`UnitfieldList`](./pkg/unifields/) extends the core collection with list manipulation operations:
+
+| Method | Description |
+|--------|-------------|
+| `Merge(list UnitfieldList)` | Appends all items from another list (each cloned) |
+| `GetAfter(index uint) []Unifielder` | Returns copy of items starting from index N (inclusive) |
+| `RemoveAfter(index uint)` | Keeps element at index, drops everything after |
+| `RemoveBefore(index uint)` | Keeps element at index, drops everything before |
+| `Clear()` | Resets the list to empty |
 
 ## Error handling
 
@@ -175,6 +273,21 @@ Cross-type-compatible methods accept ranges of types sharing the same backing fi
 - `MarshalToInt` / `MarshalToInt64` accept any signed integer type
 - `MarshalToUint` / `MarshalToUint64` accept any unsigned integer type
 - `MarshalToFloat32` / `MarshalToFloat64` accept either (they share `f64` backing field)
+
+## Deprecated — Unifields
+
+The legacy `Unifields` type remains in the codebase for backward compatibility but is deprecated. All typed adders have been migrated exclusively to `UnitfieldList`. Migrate your code at convenience:
+
+```go
+// Old (still works):
+cols := unifields.NewUnifields()
+cols.Add(unifields.String("key", "value"))
+
+// New (recommended):
+list := unifields.NewUnitfieldList()
+list.AddStr("key", "value")  // typed adder
+list.Merge(otherList)        // list manipulation
+```
 
 ## License
 

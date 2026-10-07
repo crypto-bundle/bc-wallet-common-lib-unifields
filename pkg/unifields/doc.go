@@ -39,7 +39,8 @@
 //	Use when pointer identity or deferred value binding is needed.
 //
 // Both implementations implement the [Unifielder] interface, allowing them to be mixed
-// freely inside a single [Unifields] collection.
+// freely inside a single [UnitfieldList] collection. For new code, prefer [UnitfieldList]
+// over the legacy [Unifields] type.
 //
 // # Creating Typed Values
 //
@@ -79,22 +80,55 @@
 // does not affect the clone's stored values (for val types; ptr types share the same underlying
 // pointers).
 //
-// # Collection
+// ## Collections
 //
-// The Unifields type provides an immutable collection wrapper that accepts any [Unifielder]:
+// ### UnitfieldList (recommended)
+//
+// [UnitfieldList] is the recommended collection with list-manipulation capabilities:
+//
+//	list := unifields.NewUnitfieldList()
+//	list.AddStr("name", "alice")
+//	list.Merge(otherList)                     // merge another list (items cloned)
+//	tail := list.GetAfter(0)                  // items from index N onward
+//	list.RemoveAfter(0)                       // drop items after index 0
+//	list.RemoveBefore(2)                      // drop items before index 2
+//	list.Clear()                              // reset to empty
+//
+// ### UnitfieldStack (LIFO)
+//
+// [UnitfieldStack] is a Last-In-First-Out stack over Unifield values. The top element (last pushed)
+// is returned first by Pop and Peek operations. Empty-stack behavior returns zero-value Unifield{} or nil —
+// following the same convention as UnitfieldList methods that return slices.
+//
+//	stack := unifields.NewUnitfieldStack()
+//	stack.Push(unifields.String("key", "value"))
+//	top := stack.Peek()                       // peek without removing
+//	popped := stack.Pop()                     // remove and return top
+//	all := stack.PopN(3)                      // pop up to 3 elements
+//	stack.Clear()                             // empty the stack
+//
+// ### Unifields (deprecated)
+//
+// The legacy [Unifields] type remains for backward compatibility:
 //
 //	cols := unifields.NewUnifields()
 //	cols.Add(val.String("name", "alice"))       // val.Unifield via Unifielder
 //	cols.Add(ptr.Int("count", 42))              // ptr.UnifieldPtr via Unifielder
-//	cols.AddStr("message", "hello")             // backward-compatible typed adder
 //
-// Available methods:
-//   - NewUnifields() — creates an empty collection
+// Available methods for both collections:
+//   - NewUnitfieldList() / NewUnifields() — creates an empty collection
 //   - Add(fld Unifielder) — adds a cloned Unifielder (supports both val and ptr)
 //   - AddAll(flds []Unifielder) — bulk adds cloned Unifielders
 //   - Len() — returns item count
 //   - Items() — returns read-only copy of stored items
-//   - AddStr, AddInt, AddInt8..AddInt64, AddUint..AddUint64, AddFloat32, AddFloat64, AddErr, AddTime — typed adders (default to val.)
+//   - AddStr, AddInt, AddInt8..AddInt64, AddUint..AddUint64, AddFloat32, AddFloat64, AddErr, AddTime — typed adders
+//
+// Additional methods on UnitfieldList:
+//   - Merge(list UnitfieldList) — appends all items from another list (each element cloned)
+//   - GetAfter(index uint) []Unifielder — returns copy of items from index N onward
+//   - RemoveAfter(index uint) — keeps element at index, drops everything after
+//   - RemoveBefore(index uint) — keeps element at index, drops everything before
+//   - Clear() — resets the list to empty
 //
 // # Choosing Between val and ptr
 //
@@ -104,7 +138,7 @@
 // | Struct size      | ~56 bytes                 | ~80 bytes + heap pointers|
 // | Best for         | Zero-cost hot paths       | Pointer identity needed  |
 //
-// See detailed benchmark results in .agents/reports/benchmarks_val_unifield.md.
+// See detailed benchmark results in `.agents/reports/benchmarks_val_unifield.md`.
 //
 // # Supported types
 //
@@ -122,26 +156,28 @@
 // ```text
 // pkg/unifields/
 // ├── doc.go                        → Package-level godoc + AI reference
-// ├── unified_field.go              → Package doc only (re-exported to val/ and ptr/)
-// ├── unified_fields.go             → Unifields collection + Unifielder interface
-// ├── unified_fields_test.go        → Collection tests
+// ├── unified_field.go              → Type alias (Unifield = val.Unifield) + 15 factory wrappers
+// ├── unitfield_list.go             → UnitfieldList type, NewUnitfieldList, 17 typed adders
+// ├── unified_fields.go             → Deprecated Unifields collection + Unifielder interface alias
+// ├── unified_fields_test.go        → Collection tests (polymorphic val/ptr)
 // └── unifielder/
 //
-//	└── doc.go                    → Unifielder interface definition
+//	└── common.go               → Unifielder interface definition
 //
 // └─️ val/
 //
-//	├── doc.go                    → Val package godoc
 //	├── unified_field.go          → Unifield type, factories, Clone(), MarshalTo*
 //	├── unified_field_test.go     → Unifield unit tests
 //	└─️ unified_field_benchmark_test.go → Benchmarks (factory, clone, marshal, collection)
+//	├── unified_field_list.go     → UnitfieldList type + list manipulation methods
+//	├── unified_field_list_test.go         → UnitfieldList unit tests
+//	└─️ unified_field_list_benchmark_test.go → UnitfieldList benchmarks
 //
 // └─️ ptr/
 //
 //	├── unified_field_ptr.go      → UnifieldPtr struct, factories, Clone(), MarshalTo*
 //	├── unified_field_ptr_test.go → UnifieldPtr unit tests
 //	├─️ unified_field_ptr_benchmark_test.go → Ptr benchmarks
-//	└── doc.go                    → Ptr package godoc (detailed API reference)
 //
 // ```
 //
@@ -152,7 +188,8 @@
 // | Unifield       | Single typed value + key (value)    | pkg/unifields/val/     |
 // | UnifieldPtr    | Single typed value + key (pointer)  | pkg/unifields/ptr/     |
 // | Unifielder     | Interface for polymorphic storage   | pkg/unifields/unifielder/ |
-// | Unifields      | Immutable collection of Unifielders | pkg/unifields/         |
+// | UnitfieldList  | Mutable collection with list ops    | pkg/unifields/         |
+// | Unifields      | Immutable collection (deprecated)   | pkg/unifields/         |
 // | valueType      | Discriminator enum                  | internal to val/ & ptr/|
 //
 // ### Supported types & API table
@@ -182,7 +219,7 @@
 // 3. Create factory function in val/ (`func NewType(key string, val Type) Unifield`)
 // 4. Create `MarshalToType(dst *Type) error` receiver method in val/
 // 5. Repeat steps 1-4 for ptr/ (`UnifieldPtr` variant)
-// 6. Add Add<Type>() method to `pkg/unifields/unified_fields.go` (calls val factory)
+// 6. Add Add<Type>() method to `pkg/unifields/unitfield_list.go` (delegates to val factory on UnitfieldList)
 // 7. Add test cases to both `pkg/unifields/val/unified_field_test.go` and `pkg/unifields/ptr/unified_field_ptr_test.go`
 // 8. Update `typeName()` switch in both val/ and ptr/ with new case label
 // 9. Update helper predicates (`isSignedInt` / `isUnsignedInt`) if type belongs to range
@@ -193,6 +230,7 @@
 // make lint            # golangci-lint
 // make test            # go test -race ./...
 // go vet ./...         # static analysis
+// go test -bench=. -benchmem ./pkg/unifields/... # benchmarks
 // ```
 //
 // See AGENTS.md at repo root for expanded style rules, CSG references, and task-tracking conventions.

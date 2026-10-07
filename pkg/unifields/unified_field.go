@@ -80,3 +80,13 @@ func Err(key string, val error) Unifield { return valpkg.Err(key, val) }
 
 // Time creates a new Unifield with key and time.Time value. Zero-allocation path via val.
 func Time(key string, val time.Time) Unifield { return valpkg.Time(key, val) }
+
+// UnitfieldStack re-exported from val for convenience. Consumers can use unifields.UnitfieldStack
+// without importing val/.
+type UnitfieldStack = valpkg.UnitfieldStack
+
+// NewUnitfieldStack creates a new empty UnitfieldStack LIFO stack.
+// Wraps [val.NewUnitfieldStack] so consumers never need to import the val/ sub-package directly.
+func NewUnitfieldStack() *UnitfieldStack {
+	return valpkg.NewUnitfieldStack()
+}
