@@ -35,6 +35,9 @@ pkg/unifields/
     ├── unified_field_list.go     # UnitfieldList type + list manipulation methods
     ├── unified_field_list_test.go         # UnitfieldList unit tests
     └─️ unified_field_list_benchmark_test.go # UnitfieldList benchmarks
+    ├── unitfield_stack.go        # UnitfieldStack LIFO stack with Unifielder interface returns
+    ├── unitfield_stack_test.go   # UnitfieldStack unit tests
+    └── unitfield_stack_benchmark_test.go   # UnitfieldStack benchmarks
 └─️ ptr/
     ├── unified_field_ptr.go      # UnifieldPtr struct, factories, Clone(), MarshalTo*
     ├── unified_field_ptr_test.go # Ptr unit tests

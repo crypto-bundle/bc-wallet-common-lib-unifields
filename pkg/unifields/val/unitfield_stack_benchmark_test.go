@@ -29,15 +29,15 @@ package val
 
 import (
 	"testing"
+	"time"
 
 	unifolderv2 "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/unifielder"
-	"time"
 )
 
 // BenchmarkNewUnitfieldStack measures constructor allocation overhead.
 func BenchmarkNewUnitfieldStack(b *testing.B) {
 	b.ReportAllocs()
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		_ = NewUnitfieldStack()
 	}
 }
@@ -46,7 +46,7 @@ func BenchmarkNewUnitfieldStack(b *testing.B) {
 func BenchmarkPushSingle(b *testing.B) {
 	b.ReportAllocs()
 	fld := String("key", "value")
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		s := NewUnitfieldStack()
 		s.Push(fld)
 	}
@@ -55,7 +55,7 @@ func BenchmarkPushSingle(b *testing.B) {
 // BenchmarkPushLarge measures bulk push throughput for many elements.
 func BenchmarkPushLarge(b *testing.B) {
 	b.ReportAllocs()
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		s := NewUnitfieldStack()
 		s.PushFields(
 			String("a", "alpha"), Int("b", 1), Float64("c", 1.0),
@@ -71,7 +71,7 @@ func BenchmarkPushFieldsVariadic(b *testing.B) {
 		String("one", "1"), Int("two", 2), Float64("three", 3.0),
 		Uint("four", 4), String("five", "5"),
 	}
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		s := NewUnitfieldStack()
 		s.PushFields(fields...)
 	}
@@ -80,7 +80,7 @@ func BenchmarkPushFieldsVariadic(b *testing.B) {
 // BenchmarkPopSingle measures single-element pop throughput.
 func BenchmarkPopSingle(b *testing.B) {
 	b.ReportAllocs()
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		s := NewUnitfieldStack()
 		s.Push(String("x", "val"))
 		_ = s.Pop()
@@ -90,7 +90,7 @@ func BenchmarkPopSingle(b *testing.B) {
 // BenchmarkPopNBatch measures batch pop throughput.
 func BenchmarkPopNBatch(b *testing.B) {
 	b.ReportAllocs()
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		s := NewUnitfieldStack()
 		s.PushFields(String("a", "1"), Int("b", 2), Float64("c", 3.0))
 		_ = s.PopN(2)
@@ -100,7 +100,7 @@ func BenchmarkPopNBatch(b *testing.B) {
 // BenchmarkGetTopPeek measures read-only peek throughput (no mutation).
 func BenchmarkGetTopPeek(b *testing.B) {
 	b.ReportAllocs()
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		s := NewUnitfieldStack()
 		s.Push(Int("n", 100))
 		_ = s.GetTop()
@@ -110,7 +110,7 @@ func BenchmarkGetTopPeek(b *testing.B) {
 // BenchmarkClearThroughput measures Clear operation throughput.
 func BenchmarkClearThroughput(b *testing.B) {
 	b.ReportAllocs()
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		s := NewUnitfieldStack()
 		s.PushFields(String("a", "1"), Int("b", 2), Float64("c", 3.0))
 		s.Clear()
@@ -120,7 +120,7 @@ func BenchmarkClearThroughput(b *testing.B) {
 // BenchmarkLenAccess measures Len() call overhead.
 func BenchmarkLenAccess(b *testing.B) {
 	b.ReportAllocs()
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		s := NewUnitfieldStack()
 		s.PushFields(
 			String("a", "1"), Int("b", 2), Float64("c", 3.0),
@@ -133,7 +133,7 @@ func BenchmarkLenAccess(b *testing.B) {
 // BenchmarkPopN_Large stresses PopN with a large stack.
 func BenchmarkPopN_Large(b *testing.B) {
 	b.ReportAllocs()
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		s := NewUnitfieldStack()
 		for j := 0; j < 1000; j++ {
 			s.Push(Int("k", j))

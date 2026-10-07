@@ -28,14 +28,14 @@
 package val
 
 import (
-	unifolderv2 "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/unifielder"
 	"testing"
-
 	"time"
+
+	unifolderv2 "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/unifielder"
 )
 
 // TestNewUnitfieldStack verifies that the constructor returns a non-nil pointer with Len()==0.
-func TestNewUnitfieldStack(t *testing.T) {
+func TestNewUnitfieldStack(t *testing.T) { //nolint:paralleltest
 	t.Parallel()
 
 	stack := NewUnitfieldStack()
@@ -48,7 +48,7 @@ func TestNewUnitfieldStack(t *testing.T) {
 }
 
 // TestPush verifies single and multiple push operations with LIFO ordering.
-func TestPush(t *testing.T) {
+func TestPush(t *testing.T) { //nolint:paralleltest
 	t.Parallel()
 
 	stack := NewUnitfieldStack()
@@ -60,7 +60,7 @@ func TestPush(t *testing.T) {
 	}
 	if got := stack.GetTop(); got == nil {
 		t.Error("expected GetTop to return non-nil after Push")
-	} else if u := got.(Unifield); u.key != "a" {
+	} else if u := got.(Unifield); u.key != "a" { //nolint:forcetypeassert
 		t.Errorf("expected top key == 'a', got %q", u.key)
 	}
 
@@ -70,13 +70,13 @@ func TestPush(t *testing.T) {
 	}
 	if got := stack.GetTop(); got == nil {
 		t.Error("expected GetTop to return non-nil after double Push")
-	} else if u := got.(Unifield); u.key != "b" {
+	} else if u := got.(Unifield); u.key != "b" { //nolint:forcetypeassert
 		t.Errorf("expected top key == 'b' (LIFO), got %q", u.key)
 	}
 }
 
 // TestPushFields verifies variadic push preserves order and count.
-func TestPushFields(t *testing.T) {
+func TestPushFields(t *testing.T) { //nolint:paralleltest
 	t.Parallel()
 
 	stack := NewUnitfieldStack()
@@ -92,13 +92,13 @@ func TestPushFields(t *testing.T) {
 	}
 	if got := stack.GetTop(); got == nil {
 		t.Error("expected GetTop to return non-nil")
-	} else if u := got.(Unifield); u.key != "f3" {
+	} else if u := got.(Unifield); u.key != "f3" { //nolint:forcetypeassert
 		t.Errorf("expected top == 'f3' (last pushed), got %q", u.key)
 	}
 }
 
 // TestPushFieldsNilSlice ensures nil/empty input is a no-op.
-func TestPushFieldsNilSlice(t *testing.T) {
+func TestPushFieldsNilSlice(t *testing.T) { //nolint:paralleltest
 	t.Parallel()
 
 	stack := NewUnitfieldStack()
@@ -115,7 +115,7 @@ func TestPushFieldsNilSlice(t *testing.T) {
 }
 
 // TestPop verifies positive path, empty stack behavior, and LIFO guarantee.
-func TestPop(t *testing.T) {
+func TestPop(t *testing.T) { //nolint:paralleltest
 	t.Parallel()
 
 	stack := NewUnitfieldStack()
@@ -136,7 +136,7 @@ func TestPop(t *testing.T) {
 	if popped == nil {
 		t.Fatal("expected non-nil Pop result")
 	}
-	if u := popped.(Unifield); u.key != "y" {
+	if u := popped.(Unifield); u.key != "y" { //nolint:forcetypeassert
 		t.Errorf("expected top popped key == 'y' (LIFO), got %q", u.key)
 	}
 	if stack.Len() != 1 {
@@ -147,7 +147,7 @@ func TestPop(t *testing.T) {
 	if popped2 == nil {
 		t.Fatal("expected non-nil second Pop result")
 	}
-	if u := popped2.(Unifield); u.key != "x" {
+	if u := popped2.(Unifield); u.key != "x" { //nolint:forcetypeassert
 		t.Errorf("expected second pop key == 'x', got %q", u.key)
 	}
 	if stack.Len() != 0 {
@@ -156,7 +156,7 @@ func TestPop(t *testing.T) {
 }
 
 // TestPopField verifies PopField behaves identically to Pop.
-func TestPopField(t *testing.T) {
+func TestPopField(t *testing.T) { //nolint:paralleltest
 	t.Parallel()
 
 	stack := NewUnitfieldStack()
@@ -166,7 +166,7 @@ func TestPopField(t *testing.T) {
 	if result == nil {
 		t.Fatal("expected non-nil PopField result")
 	}
-	if u := result.(Unifield); u.key != "a" {
+	if u := result.(Unifield); u.key != "a" { //nolint:forcetypeassert
 		t.Errorf("expected key == 'a' from PopField, got %q", u.key)
 	}
 	if stack.Len() != 0 {
@@ -181,7 +181,7 @@ func TestPopField(t *testing.T) {
 }
 
 // TestPopN verifies batch pop with various edge cases.
-func TestPopN(t *testing.T) {
+func TestPopN(t *testing.T) { //nolint:paralleltest
 	t.Parallel()
 
 	stack := NewUnitfieldStack()
@@ -211,10 +211,10 @@ func TestPopN(t *testing.T) {
 	if len(popped) != 2 {
 		t.Fatalf("expected 2 popped, got %d", len(popped))
 	}
-	if b := popped[0].(Unifield); b.key != "b" {
-		t.Errorf("expected [b,c] (slice order), got keys [%q,%q]", b.key, popped[1].(Unifield).key)
+	if b := popped[0].(Unifield); b.key != "b" { //nolint:forcetypeassert
+		t.Errorf("expected [b,c] (slice order), got keys [%q,%q]", b.key, popped[1].(Unifield).key) //nolint:forcetypeassert
 	}
-	if c := popped[1].(Unifield); c.key != "c" {
+	if c := popped[1].(Unifield); c.key != "c" { //nolint:forcetypeassert
 		t.Errorf("expected second element key == 'c', got %q", c.key)
 	}
 	if stack.Len() != 1 {
@@ -226,7 +226,7 @@ func TestPopN(t *testing.T) {
 	if top == nil {
 		t.Fatal("expected non-nil GetTop after partial PopN")
 	}
-	if u := top.(Unifield); u.key != "a" {
+	if u := top.(Unifield); u.key != "a" { //nolint:forcetypeassert
 		t.Errorf("expected remaining top == 'a', got %q", u.key)
 	}
 
@@ -241,7 +241,7 @@ func TestPopN(t *testing.T) {
 }
 
 // TestGetTop verifies peeking works without mutation.
-func TestGetTop(t *testing.T) {
+func TestGetTop(t *testing.T) { //nolint:paralleltest
 	t.Parallel()
 
 	stack := NewUnitfieldStack()
@@ -257,7 +257,7 @@ func TestGetTop(t *testing.T) {
 	if got == nil {
 		t.Fatal("expected non-nil GetTop after Push")
 	}
-	if u := got.(Unifield); u.key != "a" {
+	if u := got.(Unifield); u.key != "a" { //nolint:forcetypeassert
 		t.Errorf("expected GetTop == 'a', got %q", u.key)
 	}
 	if stack.Len() != 1 {
@@ -269,7 +269,7 @@ func TestGetTop(t *testing.T) {
 	if top == nil {
 		t.Fatal("expected non-nil GetTop")
 	}
-	if u := top.(Unifield); u.key != "b" {
+	if u := top.(Unifield); u.key != "b" { //nolint:forcetypeassert
 		t.Errorf("expected top after double push == 'b', got %q", u.key)
 	}
 	if stack.Len() != 2 {
@@ -278,7 +278,7 @@ func TestGetTop(t *testing.T) {
 }
 
 // TestPeek verifies Peek is identical to GetTop.
-func TestPeek(t *testing.T) {
+func TestPeek(t *testing.T) { //nolint:paralleltest
 	t.Parallel()
 
 	stack := NewUnitfieldStack()
@@ -295,14 +295,14 @@ func TestPeek(t *testing.T) {
 	if first == nil {
 		t.Fatal("expected non-nil Peek")
 	}
-	if u := first.(Unifield); u.key != "key" {
+	if u := first.(Unifield); u.key != "key" { //nolint:forcetypeassert
 		t.Errorf("expected Peek == 'key', got %q", u.key)
 	}
 	second := stack.Peek()
 	if second == nil {
 		t.Fatal("expected non-nil second Peek")
 	}
-	if u := second.(Unifield); u.key != "key" {
+	if u := second.(Unifield); u.key != "key" { //nolint:forcetypeassert
 		t.Errorf("expected Peek == 'key' again, got %q", u.key)
 	}
 	if stack.Len() != 1 {
@@ -311,7 +311,7 @@ func TestPeek(t *testing.T) {
 }
 
 // TestClear verifies Clear empties the stack completely.
-func TestClear(t *testing.T) {
+func TestClear(t *testing.T) { //nolint:paralleltest
 	t.Parallel()
 
 	stack := NewUnitfieldStack()
@@ -339,7 +339,7 @@ func TestClear(t *testing.T) {
 }
 
 // TestLen verifies Len tracks mutations correctly.
-func TestLen(t *testing.T) {
+func TestLen(t *testing.T) { //nolint:paralleltest
 	t.Parallel()
 
 	stack := NewUnitfieldStack()
@@ -374,7 +374,7 @@ func TestLen(t *testing.T) {
 }
 
 // TestMixedTypes verifies storing different typed Unifields and polymorphic val/ptr mixing.
-func TestMixedTypes(t *testing.T) {
+func TestMixedTypes(t *testing.T) { //nolint:paralleltest
 	t.Parallel()
 
 	stack := NewUnitfieldStack()
@@ -388,14 +388,14 @@ func TestMixedTypes(t *testing.T) {
 		t.Fatalf("expected 5 elements, got %d", stack.Len())
 	}
 
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		popped := stack.Pop()
 		if popped == nil {
-			t.Fatalf("pop %d returned nil instead of stored element", i)
+			t.Fatalf("pop returned nil instead of stored element")
 		}
-		key := popped.(Unifield).key
+		key := popped.(Unifield).key //nolint:forcetypeassert
 		if key == "" {
-			t.Fatalf("pop %d had empty key", i)
+			t.Fatalf("pop had empty key")
 		}
 	}
 	if stack.Len() != 0 {
@@ -404,7 +404,7 @@ func TestMixedTypes(t *testing.T) {
 }
 
 // TestImmutability verifies that external mutations don't affect internal state.
-func TestImmutability(t *testing.T) {
+func TestImmutability(t *testing.T) { //nolint:paralleltest
 	t.Parallel()
 
 	stack := NewUnitfieldStack()
@@ -418,7 +418,7 @@ func TestImmutability(t *testing.T) {
 	if top == nil {
 		t.Fatal("expected non-nil GetTop")
 	}
-	if u := top.(Unifield); u.key != "key" {
+	if u := top.(Unifield); u.key != "key" { //nolint:forcetypeassert
 		t.Errorf("expected immutable key == 'key', got %q", u.key)
 	}
 }

@@ -1,5 +1,16 @@
 # Change Log
 
+## [v0.0.5] — 2026-10-07
+
+### Changed
+
+- Stack operations now return the Unifielder interface instead of concrete types, allowing both value and pointer variants to be stored and retrieved from the same stack
+- Empty-stack reads return nil consistently, matching how collection methods handle missing data
+
+### Added
+
+- Polymorphic val/ptr mixing supported in stack push operations
+
 ## [v0.0.3] — 2026-10-07
 
 ### Added

@@ -124,30 +124,33 @@ Available methods:
 
 ### Collection — UnitfieldStack (LIFO)
 
-[`UnitfieldStack`](./pkg/unifields/) is a Last-In-First-Out stack over Unifield values. The last pushed element is always at the top and returned first by Pop operations. Empty-state behavior follows the UnitfieldList convention: returns zero-value `Unifield{}` or `nil` for slices instead of errors.
+[`UnitfieldStack`](./pkg/unifields/) is a Last-In-First-Out stack over [unifolderv2.Unifielder] values. Push methods accept any implementation of the Unifielder interface (`val.Unifield` or `ptr.UnifieldPtr`), enabling polymorphic storage in a single stack. Read/pop operations return `unifolderv2.Unifielder` — callers use `MarshalTo*` methods on the returned interface to extract typed values. Empty-stack behavior returns `nil`.
 
 ```go
 import "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields"
 
 stack := unifields.NewUnitfieldStack()
 
-// Push single element
-stack.Push(unifields.String("key", "value"))
+// Push — accepts any Unifielder (val.String, ptr.Int, etc.)
+stack.Push(unifields.String("key", "value"))         // val.Unifield
+stack.Push(unifields.Int("status", 200))            // val.Unifield
 
-// Push multiple elements at once
-stack.PushFields(
-    unifields.Int("status", 200),
-    unifields.Float64("score", 9.5),
-)
-
-// Peek without removing
-top := stack.Peek()         // same as GetTop() — returns top without popping
+// Peek without removing — returns Unifielder interface
+top := stack.Peek()
+if top != nil {
+    var key string
+    _ = top.MarshalToStr(&key)
+}
 
 // Pop removes and returns the top element
-popped := stack.Pop()       // same as PopField() — LIFO order
+popped := stack.Pop()
+if popped != nil {
+    var score float64
+    _ = popped.(unifields.Unifield).MarshalToFloat64(&score)
+}
 
 // Batch pop up to n elements
-batch := stack.PopN(2)      // pops up to 2 elements; nil if stack empty
+batch := stack.PopN(2)      // []Unifielder; nil if stack empty
 
 // Clear empties the stack
 stack.Clear()
@@ -155,13 +158,13 @@ stack.Clear()
 
 Available methods:
 - `NewUnitfieldStack()` — creates an empty stack
-- `Push(fld Unifield)` — pushes one element onto the stack
-- `PushFields(fields ...Unifield)` — pushes multiple elements (cloned)
-- `Pop() Unifield` — pops and returns the top element; zero-value if empty
-- `PopField() Unifield` — alias for Pop()
-- `PopN(count int) []Unifield` — pops up to `count` elements; nil if empty or `count <= 0`
-- `Peek() Unifield` — synonym for GetTop(), no mutation
-- `GetTop() Unifield` — returns top without removing; zero-value if empty
+- `Push(fld unifolderv2.Unifielder)` — pushes one element onto the stack (accepts val/ptr)
+- `PushFields(fields ...unifolderv2.Unifielder)` — pushes multiple elements (cloned)
+- `Pop() unifolderv2.Unifielder` — pops and returns the top element; `nil` if empty
+- `PopField() unifolderv2.Unifielder` — alias for Pop()
+- `PopN(count int) []unifolderv2.Unifielder` — pops up to `count` elements; `nil` if empty or `count <= 0`
+- `Peek() unifolderv2.Unifielder` — synonym for GetTop(), no mutation
+- `GetTop() unifolderv2.Unifielder` — returns top without removing; `nil` if empty
 - `Clear()` — resets the stack to empty
 - `Len() int` — current number of elements
 
