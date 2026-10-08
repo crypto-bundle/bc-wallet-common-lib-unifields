@@ -97,6 +97,15 @@ func (u *Unifield) resetToZero() {
 	u.type_ = valueEmpty
 }
 
+// returnValToPool safely returns only val.Unifield items to the pool.
+// Non-val.Unifield items (e.g. *ptr.UnifieldPtr) are silently skipped —
+// they become regular GC garbage when no longer referenced.
+func returnValToPool(item unifolderv2.Unifielder) {
+	if u, ok := item.(Unifield); ok {
+		unifieldPool.Put(&u)
+	}
+}
+
 // String creates a new Unifield with key and string value.
 func String(key string, val string) Unifield {
 	u := unifieldPool.Get().(*Unifield)
