@@ -28,6 +28,8 @@
 package val
 
 import (
+	"time"
+
 	unifolderv2 "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/unifielder"
 )
 
@@ -132,4 +134,79 @@ func (u *UnitfieldList) Items() []unifolderv2.Unifielder {
 	out := make([]unifolderv2.Unifielder, len(u.items))
 	copy(out, u.items)
 	return out
+}
+
+// AddStr adds a string-typed Unifield with the given key and value.
+func (u *UnitfieldList) AddStr(key string, value string) {
+	u.Add(String(key, value))
+}
+
+// AddInt adds an int-typed Unifield with the given key and value.
+func (u *UnitfieldList) AddInt(key string, value int) {
+	u.Add(Int(key, value))
+}
+
+// AddInt8 adds an int8-typed Unifield with the given key and value.
+func (u *UnitfieldList) AddInt8(key string, value int8) {
+	u.Add(Int8(key, value))
+}
+
+// AddInt16 adds an int16-typed Unifield with the given key and value.
+func (u *UnitfieldList) AddInt16(key string, value int16) {
+	u.Add(Int16(key, value))
+}
+
+// AddInt32 adds an int32-typed Unifield with the given key and value.
+func (u *UnitfieldList) AddInt32(key string, value int32) {
+	u.Add(Int32(key, value))
+}
+
+// AddInt64 adds an int64-typed Unifield with the given key and value.
+func (u *UnitfieldList) AddInt64(key string, value int64) {
+	u.Add(Int64(key, value))
+}
+
+// AddUint adds a uint-typed Unifield with the given key and value.
+func (u *UnitfieldList) AddUint(key string, value uint) {
+	u.Add(Uint(key, value))
+}
+
+// AddUint8 adds a uint8-typed Unifield with the given key and value.
+func (u *UnitfieldList) AddUint8(key string, value uint8) {
+	u.Add(Uint8(key, value))
+}
+
+// AddUint16 adds a uint16-typed Unifield with the given key and value.
+func (u *UnitfieldList) AddUint16(key string, value uint16) {
+	u.Add(Uint16(key, value))
+}
+
+// AddUint32 adds a uint32-typed Unifield with the given key and value.
+func (u *UnitfieldList) AddUint32(key string, value uint32) {
+	u.Add(Uint32(key, value))
+}
+
+// AddUint64 adds a uint64-typed Unifield with the given key and value.
+func (u *UnitfieldList) AddUint64(key string, value uint64) {
+	u.Add(Uint64(key, value))
+}
+
+// AddFloat32 adds a float32-typed Unifield with the given key and value.
+func (u *UnitfieldList) AddFloat32(key string, value float32) {
+	u.Add(Float32(key, value))
+}
+
+// AddFloat64 adds a float64-typed Unifield with the given key and value.
+func (u *UnitfieldList) AddFloat64(key string, value float64) {
+	u.Add(Float64(key, value))
+}
+
+// AddErr adds an error-typed Unifield with the given key and value.
+func (u *UnitfieldList) AddErr(key string, value error) {
+	u.Add(Err(key, value))
+}
+
+// AddTime adds a time.Time-typed Unifield with the given key and value.
+func (u *UnitfieldList) AddTime(key string, value time.Time) {
+	u.Add(Time(key, value))
 }
