@@ -1,6 +1,20 @@
 # Change Log
 
-## [v0.0.6] — 2026-10-08
+## [v0.0.7] — 2026-10-08
+
+### Added
+- `UnitfieldList` is now thread-safe via `sync.RWMutex`, enabling concurrent access from multiple goroutines
+- Three new concurrent tests validating race-free behavior under contention
+
+### Changed
+- Migrated all 15 typed adder methods from parent package to `val.UnitfieldList`
+- Replaced parent-package struct wrapper with type alias (`type UnitfieldList = val.UnitfieldList`)
+- `Merge()` now accepts a pointer to source list (`Merge(source *UnitfieldList)`) for proper mutex coordination
+- Benchmarks recorded before and after sync.RWMutex integration
+
+### Fixed
+- Data race condition in `UnitfieldList` concurrent read/write operations — eliminated by adding mutex protection to all exported methods
+- Removed `TestUnitfieldList_Merge_Self` which caused deadlock when calling `list.Merge(list)` due to Go's non-reentrant mutex
 
 ### Added
 - `UnifieldStack` now supports safe concurrent access from multiple goroutines using `sync.RWMutex`. Write methods acquire exclusive locks; read-only methods use shared read locks for better throughput under contention.

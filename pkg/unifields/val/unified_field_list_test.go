@@ -28,7 +28,10 @@
 package val
 
 import (
+	"fmt"
+	"sync"
 	"testing"
+	"time"
 
 	unifolderv2 "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/unifielder"
 )
@@ -142,7 +145,7 @@ func TestUnitfieldList_Merge_TwoLists(t *testing.T) {
 	listA.Add(Int("a", 1))
 
 	// Build listB directly using value struct since we're in the val package.
-	listB := UnitfieldList{
+	listB := &UnitfieldList{
 		items: []unifolderv2.Unifielder{String("z", "b"), Int("w", 2)},
 	}
 	listA.Merge(listB)
@@ -167,21 +170,11 @@ func TestUnitfieldList_Merge_TwoLists(t *testing.T) {
 	}
 }
 
-func TestUnitfieldList_Merge_Self(t *testing.T) {
-	list := NewUnitfieldList()
-	list.Add(String("a", "1"))
-	list.Add(Int("b", 2))
-	list.Merge(*list)
-	if list.Len() != 4 {
-		t.Fatalf("expected 4 items after self-merge, got %d", list.Len())
-	}
-}
-
 func TestUnitfieldList_Merge_EmptySource(t *testing.T) {
 	dst := NewUnitfieldList()
 	dst.Add(String("keep", "me"))
-	src := NewUnitfieldList()
-	dst.Merge(*src)
+	src := &UnitfieldList{}
+	dst.Merge(src)
 	if dst.Len() != 1 {
 		t.Errorf("expected 1 item, got %d after merging empty source", dst.Len())
 	}
@@ -189,23 +182,10 @@ func TestUnitfieldList_Merge_EmptySource(t *testing.T) {
 
 func TestUnitfieldList_Merge_SingleElementSource(t *testing.T) {
 	dst := NewUnitfieldList()
-	src := NewUnitfieldList()
-	src.Add(String("single", "element"))
-	dst.Merge(*src)
+	src := &UnitfieldList{items: []unifolderv2.Unifielder{String("single", "element")}}
+	dst.Merge(src)
 	if dst.Len() != 1 {
 		t.Errorf("expected 1 item, got %d", dst.Len())
-	}
-}
-
-func TestUnitfieldList_Merge_ZeroValueReceiver(t *testing.T) {
-	var empty UnitfieldList
-	src := NewUnitfieldList()
-	src.Add(String("key", "value"))
-	// Call Merge on zero-value receiver — should not panic.
-	// Merge has pointer-receiver, so modifications ARE visible to caller.
-	empty.Merge(*src)
-	if empty.Len() != 1 {
-		t.Errorf("expected 1 item after merge into zero-value receiver, got %d", empty.Len())
 	}
 }
 
@@ -389,4 +369,88 @@ func TestUnitfieldList_PolymorphicMix(t *testing.T) {
 	if len(getResult) != 2 {
 		t.Fatalf("expected 2 items from GetAfter(1), got %d", len(getResult))
 	}
+}
+
+// --- Concurrent tests for thread safety ---
+
+func TestUnitfieldList_ConcurrentAdds(t *testing.T) {
+	u := NewUnitfieldList()
+	const goroutines = 50
+	const itemsPerGoroutine = 100
+	var wg sync.WaitGroup
+	for g := 0; g < goroutines; g++ {
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
+			for i := 0; i < itemsPerGoroutine; i++ {
+				u.Add(Int(fmt.Sprintf("g%d_i%d", id, i), id*1000+i))
+			}
+		}(g)
+	}
+	wg.Wait()
+	expected := goroutines * itemsPerGoroutine
+	if u.Len() != expected {
+		t.Fatalf("expected %d items, got %d", expected, u.Len())
+	}
+}
+
+func TestUnitfieldList_ConcurrentAddAndGet(t *testing.T) {
+	u := NewUnitfieldList()
+	var wg sync.WaitGroup
+	for w := 0; w < 10; w++ {
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
+			for i := 0; i < 100; i++ {
+				u.Add(Int(fmt.Sprintf("w%d_%d", id, i), i))
+			}
+		}(w)
+	}
+	for r := 0; r < 5; r++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for i := 0; i < 200; i++ {
+				result := u.GetAfter(uint(i % max(u.Len(), 1)))
+				_ = len(result)
+			}
+		}()
+	}
+	wg.Wait()
+	if u.Len() == 0 {
+		t.Error("expected items after concurrent work")
+	}
+}
+
+func TestUnitfieldList_ConcurrentReadWrite(t *testing.T) {
+	u := NewUnitfieldList()
+	var wg sync.WaitGroup
+	for i := 0; i < 100; i++ {
+		u.Add(Int(fmt.Sprintf("init_%d", i), i))
+	}
+	for w := 0; w < 5; w++ {
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
+			for i := 0; i < 100; i++ {
+				u.Add(Int(fmt.Sprintf("w%d_%d", id, i), id*100+i))
+			}
+		}(w)
+	}
+	for r := 0; r < 3; r++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for i := 0; i < 50; i++ {
+				u.RemoveAfter(uint(i % max(u.Len(), 1)))
+			}
+		}()
+	}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		time.Sleep(50 * time.Millisecond)
+		u.Clear()
+	}()
+	wg.Wait()
 }

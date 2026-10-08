@@ -123,8 +123,8 @@
 //   - Items() — returns read-only copy of stored items
 //   - AddStr, AddInt, AddInt8..AddInt64, AddUint..AddUint64, AddFloat32, AddFloat64, AddErr, AddTime — typed adders
 //
-// Additional methods on UnitfieldList:
-//   - Merge(list UnitfieldList) — appends all items from another list (each element cloned)
+// Additional methods on UnitfieldList (thread-safe via sync.RWMutex):
+//   - Merge(source *UnitfieldList) — appends all items from source list (each element cloned); DO NOT pass same list as receiver and source (deadlock due to non-reentrant mutex)
 //   - GetAfter(index uint) []Unifielder — returns copy of items from index N onward
 //   - RemoveAfter(index uint) — keeps element at index, drops everything after
 //   - RemoveBefore(index uint) — keeps element at index, drops everything before
@@ -157,7 +157,7 @@
 // pkg/unifields/
 // ├── doc.go                        → Package-level godoc + AI reference
 // ├── unified_field.go              → Type alias (Unifield = val.Unifield) + 15 factory wrappers
-// ├── unitfield_list.go             → UnitfieldList type, NewUnitfieldList, 17 typed adders
+// ├── unitfield_list.go             → Type alias only (val.UnitfieldList)
 // ├── unified_fields.go             → Deprecated Unifields collection + Unifielder interface alias
 // ├── unified_fields_test.go        → Collection tests (polymorphic val/ptr)
 // └── unifielder/

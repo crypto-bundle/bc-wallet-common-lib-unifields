@@ -125,6 +125,12 @@ linters:
           - testpackage
           - govet
           - wsl_v5
+          - exhaustruct_v5
+
+      - path: unified_field_list_test\.go
+        linters:
+          - exhaustruct_v5
+          - fieldalignment
 
       - path: doc\.go
         linters:
@@ -159,6 +165,7 @@ linters:
         linters:
           - cyclop
           - exhaustruct_v5
+          - fieldalignment
           - gosec
           - nlreturn
           - wsl_v5
