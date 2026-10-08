@@ -157,8 +157,8 @@ func (u *UnitfieldList) removeBeforeNoLock(index int) {
 	if idx <= 0 || idx >= n {
 		return
 	}
-	for i := 0; i < idx; i++ {
-		returnValToPool(u.items[i])
+	for _, item := range u.items[:idx] {
+		returnValToPool(item)
 	}
 	u.items = u.items[idx:]
 }

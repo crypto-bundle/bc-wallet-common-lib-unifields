@@ -83,7 +83,8 @@ type Unifield struct {
 // unifieldPool is a sync.Pool that pre-allocates Unifield instances for reuse across factory calls.
 // Each factory function obtains a zeroed Unifield from the pool, sets its fields, and returns
 // a value-copy to the caller. On return to pool, all fields are zeroed for safety.
-var unifieldPool = sync.Pool{New: func() any { return new(Unifield) }}
+// It must be a global because sync.Pool requires shared state across all factories.
+var unifieldPool = sync.Pool{New: func() any { return new(Unifield) }} //nolint:gochecknoglobals // shared pool required by sync.Pool design
 
 // resetToZero zeroes all fields of the Unifield in preparation for pool reuse.
 func (u *Unifield) resetToZero() {

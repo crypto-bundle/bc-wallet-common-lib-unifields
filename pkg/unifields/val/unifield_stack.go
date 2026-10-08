@@ -123,10 +123,11 @@ func (s *UnifieldStack) pop() unifolderv2.Unifielder { //nolint:ireturn
 	}
 
 	idx := n - 1
-	result := s.items[idx].Clone()          // ① clone BEFORE anything else
-	returnValToPool(s.items[idx])           // ② put original into pool
-	s.items = s.items[:idx]                 // ③ truncate
-	return result                           // ④ caller gets independent copy
+	result := s.items[idx].Clone() // ① clone BEFORE anything else
+	returnValToPool(s.items[idx])  // ② put original into pool
+	s.items = s.items[:idx]        // ③ truncate
+
+	return result // ④ caller gets independent copy
 }
 
 // PopField is an alias for [Pop]. Both names perform the same operation.
@@ -155,22 +156,27 @@ func (s *UnifieldStack) popNNolockInt(count int) []unifolderv2.Unifielder {
 	if count >= len(s.items) {
 		// Branch A: pop all elements
 		result := make([]unifolderv2.Unifielder, len(s.items))
-		for i := 0; i < len(s.items); i++ {
-			result[i] = s.items[i].Clone()    // clone each element
-			returnValToPool(s.items[i])        // pool original
+		for i := range len(s.items) {
+			result[i] = s.items[i].Clone() // clone each element
+			returnValToPool(s.items[i])    // pool original
 		}
+
 		s.items = s.items[:0]
+
 		return result
 	}
 
 	// Branch B: pop partial from top
 	startIdx := len(s.items) - count
+
 	result := make([]unifolderv2.Unifielder, count)
 	for i := startIdx; i < len(s.items); i++ {
-		result[i-startIdx] = s.items[i].Clone()  // clone each element
-		returnValToPool(s.items[i])                 // pool original
+		result[i-startIdx] = s.items[i].Clone() // clone each element
+		returnValToPool(s.items[i])             // pool original
 	}
+
 	s.items = s.items[:startIdx]
+
 	return result
 }
 
@@ -191,6 +197,7 @@ func (s *UnifieldStack) clearNoLock() {
 	for _, item := range s.items {
 		returnValToPool(item)
 	}
+
 	s.items = s.items[:0]
 }
 
@@ -245,6 +252,7 @@ func (s *UnifieldStack) Peek() unifolderv2.Unifielder { //nolint:ireturn
 func (s *UnifieldStack) Flush() []unifolderv2.Unifielder {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
 	return s.flush()
 }
 
@@ -255,11 +263,14 @@ func (s *UnifieldStack) flush() []unifolderv2.Unifielder {
 	if n == 0 {
 		return nil
 	}
+
 	result := make([]unifolderv2.Unifielder, n)
-	for i := 0; i < n; i++ {
+	for i := range n {
 		result[i] = s.items[i].Clone()
 		returnValToPool(s.items[i])
 	}
+
 	s.items = s.items[:0]
+
 	return result
 }

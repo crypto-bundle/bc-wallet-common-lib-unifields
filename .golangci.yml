@@ -126,6 +126,8 @@ linters:
           - govet
           - wsl_v5
           - exhaustruct_v5
+          - forcetypeassert
+          - varnamelen
 
       - path: unified_field_list_test\.go
         linters:
@@ -152,6 +154,7 @@ linters:
           - gosec
           - nlreturn
           - wsl_v5
+          - forcetypeassert
 
       - path: unified_fields\.go
         linters:
@@ -185,6 +188,7 @@ linters:
           - gosec
           - nlreturn
           - wsl_v5
+          - varnamelen
 
       - source: "^* "
         linters:
@@ -249,6 +253,7 @@ linters:
         - f
         - u
         - c
+        - n
     govet:
       enable-all: true
     goheader:

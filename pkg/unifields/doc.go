@@ -100,12 +100,22 @@
 // is returned first by Pop and Peek operations. Empty-stack behavior returns zero-value Unifield{} or nil —
 // following the same convention as UnitfieldList methods that return slices.
 //
+// Memory management: val.Unifield instances use sync.Pool internally for efficient pre-allocation.
+// Push/Pop/Flush/Clear operations automatically manage pool membership — callers do NOT need
+// to manually manage pool lifecycle. Only val.Unifield participates in pooling; ptr.UnifieldPtr
+// instances become regular GC garbage when no longer referenced.
+//
 //	stack := unifields.NewUnifieldStack()
 //	stack.Push(unifields.String("key", "value"))
 //	top := stack.Peek()                       // peek without removing
-//	popped := stack.Pop()                     // remove and return top
-//	all := stack.PopN(3)                      // pop up to 3 elements
-//	stack.Clear()                             // empty the stack
+//	popped := stack.Pop()                     // remove, clone, return original to pool
+//	all := stack.PopN(3)                      // pop up to 3 elements as clones
+//	flushed := stack.Flush()                  // pop ALL remaining as clones, empty stack
+//	stack.Clear()                             // empty stack, return items to pool
+//
+// Pop() returns a **clone** of the top element to preserve immutability — mutations to the
+// returned value do not affect any item stored in the stack or in the pool. Original items
+// are returned to the internal pool after being cloned.
 //
 // ### Unifields (deprecated)
 //
@@ -126,9 +136,13 @@
 // Additional methods on UnitfieldList (thread-safe via sync.RWMutex):
 //   - Merge(source *UnitfieldList) — appends all items from source list (each element cloned); DO NOT pass same list as receiver and source (deadlock due to non-reentrant mutex)
 //   - GetAfter(index uint) []Unifielder — returns copy of items from index N onward
-//   - RemoveAfter(index uint) — keeps element at index, drops everything after
-//   - RemoveBefore(index uint) — keeps element at index, drops everything before
-//   - Clear() — resets the list to empty
+//   - RemoveAfter(index uint) — keeps element at index, drops after; removed items returned to pool
+//   - RemoveBefore(index uint) — keeps element at index, drops before; removed items returned to pool
+//   - Clear() — resets list to empty; all items returned to pool
+//
+// Memory management: val.Unifield instances in collections use sync.Pool internally for efficient
+// pre-allocation. Removal operations (RemoveAfter, RemoveBefore, Clear) automatically return recycled
+// val.Unifield instances to the pool. ptr.UnifieldPtr instances become regular GC garbage when unreferenced.
 //
 // # Choosing Between val and ptr
 //
@@ -150,6 +164,26 @@
 // Repository: github.com/crypto-bundle/bc-wallet-common-lib-unifields
 // Maintainer: @gudron (Alex V Kotelnikov) <gudron2s@gmail.com>
 // License: MIT NON-AI
+//
+// ### Memory pool (`sync.Pool`)
+//
+// val.Unifield uses a single package-level sync.Pool internally for efficient pre-allocation.
+// Each factory function obtains an Unifield from the pool, resets fields, sets values, and returns
+// a value-copy to the caller. On collection removal operations (RemoveAfter, RemoveBefore, Clear),
+// val.Unifield instances are returned to the pool via returnValToPool().
+//
+// | Operation       | Pool usage                                    | Clone? | Return to pool? |
+// |-----------------|-----------------------------------------------|--------|-----------------|
+// | Factory         | Get → resetToZero() → set fields → *Unifield   | No     | N/A             |
+// | Clone()         | Plain struct copy (value semantics)            | Yes    | No              |
+// | Add/Push        | Caller's item cloned into collection           | Yes    | On removal      |
+// | Getters         | Already return copies or interface references  | N/A    | No              |
+// | Remove/Clear    | N/A                                           | N/A    | Yes             |
+// | Pop/PopN        | Items removed, originals pooled after clone    | Yes    | Yes             |
+// | Flush           | All items cloned, originals pooled, stack empty| Yes    | Yes             |
+//
+// Only val.Unifield participates in pooling; ptr.UnifieldPtr is silently skipped by returnValToPool()
+// and becomes regular GC garbage when unreferenced. Users must NOT manually manage pool lifecycle.
 //
 // ### File layout
 //
