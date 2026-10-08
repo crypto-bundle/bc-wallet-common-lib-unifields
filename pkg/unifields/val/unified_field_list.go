@@ -114,13 +114,25 @@ func (u *UnitfieldList) GetAfter(index uint) []unifolderv2.Unifielder {
 // RemoveAfter removes all items after the element at the given index (keeping index itself).
 // For example: RemoveAfter(0) on [a,b,c] keeps only [a].
 // Out-of-range indices (index >= len) are a no-op; never panics.
+// Items removed are returned to the pool.
 func (u *UnitfieldList) RemoveAfter(index uint) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
+	u.removeAfterNoLock(int(index))
+}
+
+// removeAfterNoLock removes all items after the element at the given index (keeping index itself).
+// For example: RemoveAfter(0) on [a,b,c] keeps only [a].
+// Out-of-range indices (index >= len) are a no-op; never panics.
+// Items removed are returned to the pool. Not safe externally.
+func (u *UnitfieldList) removeAfterNoLock(index int) {
 	n := len(u.items)
-	idx := int(index)
+	idx := index
 	if idx < 0 || idx >= n {
 		return
+	}
+	for i := idx + 1; i < n; i++ {
+		returnValToPool(u.items[i])
 	}
 	u.items = u.items[:idx+1]
 }
@@ -128,23 +140,45 @@ func (u *UnitfieldList) RemoveAfter(index uint) {
 // RemoveBefore removes all items before the element at the given index (keeping index itself).
 // For example: RemoveBefore(2) on [a,b,c,d] keeps only [c,d].
 // When index is 0 or out-of-range, this is a no-op. Never panics.
+// Items removed are returned to the pool.
 func (u *UnitfieldList) RemoveBefore(index uint) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
+	u.removeBeforeNoLock(int(index))
+}
+
+// removeBeforeNoLock removes all items before the element at the given index (keeping index itself).
+// For example: RemoveBefore(2) on [a,b,c,d] keeps only [c,d].
+// When index is 0 or out-of-range, this is a no-op. Never panics.
+// Items removed are returned to the pool. Not safe externally.
+func (u *UnitfieldList) removeBeforeNoLock(index int) {
 	n := len(u.items)
-	idx := int(index)
+	idx := index
 	if idx <= 0 || idx >= n {
 		return
+	}
+	for i := 0; i < idx; i++ {
+		returnValToPool(u.items[i])
 	}
 	u.items = u.items[idx:]
 }
 
+// clearNoLock clears all items from the list and returns them to the pool.
+// Caller must hold u.mu.Lock(). Not safe externally.
+func (u *UnitfieldList) clearNoLock() {
+	for _, item := range u.items {
+		returnValToPool(item)
+	}
+	u.items = u.items[:0]
+}
+
 // Clear removes all items from the list, resetting the internal slice to empty.
 // Subsequent calls to Len() return 0.
+// Items are returned to the pool.
 func (u *UnitfieldList) Clear() {
 	u.mu.Lock()
 	defer u.mu.Unlock()
-	u.items = u.items[:0]
+	u.clearNoLock()
 }
 
 // Len returns the number of items currently stored in the list.
