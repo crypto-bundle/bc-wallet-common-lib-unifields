@@ -142,7 +142,7 @@ func TestUnitfieldList_Merge_TwoLists(t *testing.T) {
 	listA.Add(Int("a", 1))
 
 	// Build listB directly using value struct since we're in the val package.
-	listB := UnitfieldList{
+	listB := &UnitfieldList{
 		items: []unifolderv2.Unifielder{String("z", "b"), Int("w", 2)},
 	}
 	listA.Merge(listB)
@@ -171,7 +171,7 @@ func TestUnitfieldList_Merge_Self(t *testing.T) {
 	list := NewUnitfieldList()
 	list.Add(String("a", "1"))
 	list.Add(Int("b", 2))
-	list.Merge(*list)
+	list.Merge(list)
 	if list.Len() != 4 {
 		t.Fatalf("expected 4 items after self-merge, got %d", list.Len())
 	}
@@ -180,8 +180,8 @@ func TestUnitfieldList_Merge_Self(t *testing.T) {
 func TestUnitfieldList_Merge_EmptySource(t *testing.T) {
 	dst := NewUnitfieldList()
 	dst.Add(String("keep", "me"))
-	src := NewUnitfieldList()
-	dst.Merge(*src)
+	src := &UnitfieldList{}
+	dst.Merge(src)
 	if dst.Len() != 1 {
 		t.Errorf("expected 1 item, got %d after merging empty source", dst.Len())
 	}
@@ -189,23 +189,10 @@ func TestUnitfieldList_Merge_EmptySource(t *testing.T) {
 
 func TestUnitfieldList_Merge_SingleElementSource(t *testing.T) {
 	dst := NewUnitfieldList()
-	src := NewUnitfieldList()
-	src.Add(String("single", "element"))
-	dst.Merge(*src)
+	src := &UnitfieldList{items: []unifolderv2.Unifielder{String("single", "element")}}
+	dst.Merge(src)
 	if dst.Len() != 1 {
 		t.Errorf("expected 1 item, got %d", dst.Len())
-	}
-}
-
-func TestUnitfieldList_Merge_ZeroValueReceiver(t *testing.T) {
-	var empty UnitfieldList
-	src := NewUnitfieldList()
-	src.Add(String("key", "value"))
-	// Call Merge on zero-value receiver — should not panic.
-	// Merge has pointer-receiver, so modifications ARE visible to caller.
-	empty.Merge(*src)
-	if empty.Len() != 1 {
-		t.Errorf("expected 1 item after merge into zero-value receiver, got %d", empty.Len())
 	}
 }
 

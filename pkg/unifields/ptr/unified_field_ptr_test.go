@@ -1021,7 +1021,7 @@ func TestNilDstMarshalToTime(t *testing.T) {
 
 func TestEmptyAccessMarshalToStr(t *testing.T) {
 	t.Parallel()
-	u := UnifieldPtr{key: "k"} //nolint:exhaustruct_v5 // testing empty UnifieldPtr access errors
+	u := UnifieldPtr{key: "k"}
 	var s string
 	if err := u.MarshalToStr(&s); err == nil {
 		t.Error("expected error for empty → MarshalToStr")
@@ -1032,7 +1032,7 @@ func TestEmptyAccessMarshalToStr(t *testing.T) {
 
 func TestEmptyAccessMarshalToInt(t *testing.T) {
 	t.Parallel()
-	u := UnifieldPtr{key: "k"} //nolint:exhaustruct_v5 // testing empty UnifieldPtr access errors
+	u := UnifieldPtr{key: "k"}
 	var i int
 	if err := u.MarshalToInt(&i); err == nil {
 		t.Error("expected error for empty → MarshalToInt")
@@ -1041,7 +1041,7 @@ func TestEmptyAccessMarshalToInt(t *testing.T) {
 
 func TestEmptyAccessMarshalToUint64(t *testing.T) {
 	t.Parallel()
-	u := UnifieldPtr{key: "k"} //nolint:exhaustruct_v5 // testing empty UnifieldPtr access errors
+	u := UnifieldPtr{key: "k"}
 	var ui uint64
 	if err := u.MarshalToUint64(&ui); err == nil {
 		t.Error("expected error for empty → MarshalToUint64")
@@ -1050,7 +1050,7 @@ func TestEmptyAccessMarshalToUint64(t *testing.T) {
 
 func TestEmptyAccessMarshalToFloat64(t *testing.T) {
 	t.Parallel()
-	u := UnifieldPtr{key: "k"} //nolint:exhaustruct_v5 // testing empty UnifieldPtr access errors
+	u := UnifieldPtr{key: "k"}
 	var f float64
 	if err := u.MarshalToFloat64(&f); err == nil {
 		t.Error("expected error for empty → MarshalToFloat64")
@@ -1059,7 +1059,7 @@ func TestEmptyAccessMarshalToFloat64(t *testing.T) {
 
 func TestEmptyAccessMarshalToTime(t *testing.T) {
 	t.Parallel()
-	u := UnifieldPtr{key: "k"} //nolint:exhaustruct_v5 // testing empty UnifieldPtr access errors
+	u := UnifieldPtr{key: "k"}
 	var tm time.Time
 	if err := u.MarshalToTime(&tm); err == nil {
 		t.Error("expected error for empty → MarshalToTime")

@@ -88,8 +88,8 @@ func BenchmarkUnitfieldList_Merge_TwoMediumLists(b *testing.B) {
 	srcB := newUnitfieldListValue(50, "b")
 	for range b.N {
 		dst := NewUnitfieldList()
-		dst.Merge(*srcA)
-		dst.Merge(*srcB)
+		dst.Merge(srcA)
+		dst.Merge(srcB)
 		_ = dst.Len()
 	}
 }
