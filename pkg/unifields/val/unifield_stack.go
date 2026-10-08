@@ -114,7 +114,8 @@ func (s *UnifieldStack) Pop() unifolderv2.Unifielder { //nolint:ireturn
 	return s.pop()
 }
 
-// pop removes and returns the top element from the stack.. Not safe externally.
+// pop removes and returns the top element from the stack.
+// Caller must hold s.mu.Lock(). Not safe externally.
 func (s *UnifieldStack) pop() unifolderv2.Unifielder { //nolint:ireturn
 	n := len(s.items)
 	if n == 0 {
@@ -122,10 +123,11 @@ func (s *UnifieldStack) pop() unifolderv2.Unifielder { //nolint:ireturn
 	}
 
 	idx := n - 1
-	result := s.items[idx]
-	s.items = s.items[:idx]
+	result := s.items[idx].Clone() // ① clone BEFORE anything else
+	returnValToPool(s.items[idx])  // ② put original into pool
+	s.items = s.items[:idx]        // ③ truncate
 
-	return result
+	return result // ④ caller gets independent copy
 }
 
 // PopField is an alias for [Pop]. Both names perform the same operation.
@@ -152,20 +154,35 @@ func (s *UnifieldStack) popNNolockInt(count int) []unifolderv2.Unifielder {
 	}
 
 	if count >= len(s.items) {
-		result := s.items
+		// Branch A: pop all elements
+		result := make([]unifolderv2.Unifielder, len(s.items))
+		for i := range len(s.items) {
+			result[i] = s.items[i].Clone() // clone each element
+			returnValToPool(s.items[i])    // pool original
+		}
+
 		s.items = s.items[:0]
 
 		return result
 	}
 
-	result := s.items[len(s.items)-count:]
-	s.items = s.items[:len(s.items)-count]
+	// Branch B: pop partial from top
+	startIdx := len(s.items) - count
+
+	result := make([]unifolderv2.Unifielder, count)
+	for i := startIdx; i < len(s.items); i++ {
+		result[i-startIdx] = s.items[i].Clone() // clone each element
+		returnValToPool(s.items[i])             // pool original
+	}
+
+	s.items = s.items[:startIdx]
 
 	return result
 }
 
 // Clear removes all elements from the stack, resetting the internal slice to empty.
 // Subsequent calls to Len() return 0. No effect when the stack is already empty.
+// Items are returned to the pool.
 // Thread-safe: acquires exclusive lock.
 func (s *UnifieldStack) Clear() {
 	s.mu.Lock()
@@ -174,8 +191,13 @@ func (s *UnifieldStack) Clear() {
 	s.clearNoLock()
 }
 
-// clearNoLock clears the stack assuming caller holds s.mu.Lock(). Not safe externally.
+// clearNoLock clears all items from the stack and returns them to the pool.
+// Caller must hold s.mu.Lock(). Not safe externally.
 func (s *UnifieldStack) clearNoLock() {
+	for _, item := range s.items {
+		returnValToPool(item)
+	}
+
 	s.items = s.items[:0]
 }
 
@@ -221,4 +243,34 @@ func (s *UnifieldStack) Peek() unifolderv2.Unifielder { //nolint:ireturn
 	defer s.mu.RUnlock()
 
 	return s.getTopNoLock()
+}
+
+// Flush removes and returns all elements from the stack as a slice.
+// The stack becomes empty afterward (equivalent to Pop + Clear combined).
+// Items returned are clones; originals are returned to the pool.
+// Thread-safe: acquires exclusive lock.
+func (s *UnifieldStack) Flush() []unifolderv2.Unifielder {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	return s.flush()
+}
+
+// flush removes and returns all items, returning originals to the pool.
+// Caller must hold s.mu.Lock(). Not safe externally.
+func (s *UnifieldStack) flush() []unifolderv2.Unifielder {
+	n := len(s.items)
+	if n == 0 {
+		return nil
+	}
+
+	result := make([]unifolderv2.Unifielder, n)
+	for i := range n {
+		result[i] = s.items[i].Clone()
+		returnValToPool(s.items[i])
+	}
+
+	s.items = s.items[:0]
+
+	return result
 }

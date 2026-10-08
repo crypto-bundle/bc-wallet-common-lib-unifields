@@ -30,6 +30,7 @@ package val
 import (
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	unifolderv2 "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields/unifielder"
@@ -79,79 +80,181 @@ type Unifield struct {
 	type_ valueType // discriminator tag
 }
 
+// unifieldPool is a sync.Pool that pre-allocates Unifield instances for reuse across factory calls.
+// Each factory function obtains a zeroed Unifield from the pool, sets its fields, and returns
+// a value-copy to the caller. On return to pool, all fields are zeroed for safety.
+// It must be a global because sync.Pool requires shared state across all factories.
+var unifieldPool = sync.Pool{New: func() any { return new(Unifield) }} //nolint:gochecknoglobals // shared pool required by sync.Pool design
+
+// resetToZero zeroes all fields of the Unifield in preparation for pool reuse.
+func (u *Unifield) resetToZero() {
+	u.key = ""
+	u.err = nil
+	u.tm = time.Time{}
+	u.str = ""
+	u.i64 = 0
+	u.u64 = 0
+	u.f64 = 0
+	u.type_ = valueEmpty
+}
+
+// returnValToPool safely returns only val.Unifield items to the pool.
+// Non-val.Unifield items (e.g. *ptr.UnifieldPtr) are silently skipped —
+// they become regular GC garbage when no longer referenced.
+func returnValToPool(item unifolderv2.Unifielder) {
+	if u, ok := item.(Unifield); ok {
+		unifieldPool.Put(&u)
+	}
+}
+
 // String creates a new Unifield with key and string value.
 func String(key string, val string) Unifield {
-	return Unifield{key: key, str: val, type_: valueString}
+	u := unifieldPool.Get().(*Unifield)
+	u.resetToZero()
+	u.key = key
+	u.str = val
+	u.type_ = valueString
+	return *u
 }
 
 // Int creates a new Unifield with key and int value.
 func Int(key string, val int) Unifield {
-	return Unifield{key: key, i64: int64(val), type_: valueInt}
+	u := unifieldPool.Get().(*Unifield)
+	u.resetToZero()
+	u.key = key
+	u.i64 = int64(val)
+	u.type_ = valueInt
+	return *u
 }
 
 // Int8 creates a new Unifield with key and int8 value.
 func Int8(key string, val int8) Unifield {
-	return Unifield{key: key, i64: int64(val), type_: valueInt8}
+	u := unifieldPool.Get().(*Unifield)
+	u.resetToZero()
+	u.key = key
+	u.i64 = int64(val)
+	u.type_ = valueInt8
+	return *u
 }
 
 // Int16 creates a new Unifield with key and int16 value.
 func Int16(key string, val int16) Unifield {
-	return Unifield{key: key, i64: int64(val), type_: valueInt16}
+	u := unifieldPool.Get().(*Unifield)
+	u.resetToZero()
+	u.key = key
+	u.i64 = int64(val)
+	u.type_ = valueInt16
+	return *u
 }
 
 // Int32 creates a new Unifield with key and int32 value.
 func Int32(key string, val int32) Unifield {
-	return Unifield{key: key, i64: int64(val), type_: valueInt32}
+	u := unifieldPool.Get().(*Unifield)
+	u.resetToZero()
+	u.key = key
+	u.i64 = int64(val)
+	u.type_ = valueInt32
+	return *u
 }
 
 // Int64 creates a new Unifield with key and int64 value.
 func Int64(key string, val int64) Unifield {
-	return Unifield{key: key, i64: val, type_: valueInt64}
+	u := unifieldPool.Get().(*Unifield)
+	u.resetToZero()
+	u.key = key
+	u.i64 = val
+	u.type_ = valueInt64
+	return *u
 }
 
 // Uint creates a new Unifield with key and uint value.
 func Uint(key string, val uint) Unifield {
-	return Unifield{key: key, u64: uint64(val), type_: valueUint}
+	u := unifieldPool.Get().(*Unifield)
+	u.resetToZero()
+	u.key = key
+	u.u64 = uint64(val)
+	u.type_ = valueUint
+	return *u
 }
 
 // Uint8 creates a new Unifield with key and uint8 value.
 func Uint8(key string, val uint8) Unifield {
-	return Unifield{key: key, u64: uint64(val), type_: valueUint8}
+	u := unifieldPool.Get().(*Unifield)
+	u.resetToZero()
+	u.key = key
+	u.u64 = uint64(val)
+	u.type_ = valueUint8
+	return *u
 }
 
 // Uint16 creates a new Unifield with key and uint16 value.
 func Uint16(key string, val uint16) Unifield {
-	return Unifield{key: key, u64: uint64(val), type_: valueUint16}
+	u := unifieldPool.Get().(*Unifield)
+	u.resetToZero()
+	u.key = key
+	u.u64 = uint64(val)
+	u.type_ = valueUint16
+	return *u
 }
 
 // Uint32 creates a new Unifield with key and uint32 value.
 func Uint32(key string, val uint32) Unifield {
-	return Unifield{key: key, u64: uint64(val), type_: valueUint32}
+	u := unifieldPool.Get().(*Unifield)
+	u.resetToZero()
+	u.key = key
+	u.u64 = uint64(val)
+	u.type_ = valueUint32
+	return *u
 }
 
 // Uint64 creates a new Unifield with key and uint64 value.
 func Uint64(key string, val uint64) Unifield {
-	return Unifield{key: key, u64: val, type_: valueUint64}
+	u := unifieldPool.Get().(*Unifield)
+	u.resetToZero()
+	u.key = key
+	u.u64 = val
+	u.type_ = valueUint64
+	return *u
 }
 
 // Float32 creates a new Unifield with key and float32 value.
 func Float32(key string, val float32) Unifield {
-	return Unifield{key: key, f64: float64(val), type_: valueFloat32}
+	u := unifieldPool.Get().(*Unifield)
+	u.resetToZero()
+	u.key = key
+	u.f64 = float64(val)
+	u.type_ = valueFloat32
+	return *u
 }
 
 // Float64 creates a new Unifield with key and float64 value.
 func Float64(key string, val float64) Unifield {
-	return Unifield{key: key, f64: val, type_: valueFloat64}
+	u := unifieldPool.Get().(*Unifield)
+	u.resetToZero()
+	u.key = key
+	u.f64 = val
+	u.type_ = valueFloat64
+	return *u
 }
 
 // Err creates a new Unifield with key and error value.
 func Err(key string, val error) Unifield {
-	return Unifield{key: key, err: val, type_: valueError}
+	u := unifieldPool.Get().(*Unifield)
+	u.resetToZero()
+	u.key = key
+	u.err = val
+	u.type_ = valueError
+	return *u
 }
 
 // Time creates a new Unifield with key and time.Time value.
 func Time(key string, val time.Time) Unifield {
-	return Unifield{key: key, tm: val, type_: valueTime}
+	u := unifieldPool.Get().(*Unifield)
+	u.resetToZero()
+	u.key = key
+	u.tm = val
+	u.type_ = valueTime
+	return *u
 }
 
 // Clone returns a shallow copy of the Unifield implementing Unifielder. Since all fields

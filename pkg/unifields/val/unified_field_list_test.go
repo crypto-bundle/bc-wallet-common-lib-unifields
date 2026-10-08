@@ -378,11 +378,11 @@ func TestUnitfieldList_ConcurrentAdds(t *testing.T) {
 	const goroutines = 50
 	const itemsPerGoroutine = 100
 	var wg sync.WaitGroup
-	for g := 0; g < goroutines; g++ {
+	for g := range goroutines {
 		wg.Add(1)
 		go func(id int) {
 			defer wg.Done()
-			for i := 0; i < itemsPerGoroutine; i++ {
+			for i := range itemsPerGoroutine {
 				u.Add(Int(fmt.Sprintf("g%d_i%d", id, i), id*1000+i))
 			}
 		}(g)
@@ -397,20 +397,20 @@ func TestUnitfieldList_ConcurrentAdds(t *testing.T) {
 func TestUnitfieldList_ConcurrentAddAndGet(t *testing.T) {
 	u := NewUnitfieldList()
 	var wg sync.WaitGroup
-	for w := 0; w < 10; w++ {
+	for w := range 10 {
 		wg.Add(1)
 		go func(id int) {
 			defer wg.Done()
-			for i := 0; i < 100; i++ {
+			for i := range 100 {
 				u.Add(Int(fmt.Sprintf("w%d_%d", id, i), i))
 			}
 		}(w)
 	}
-	for r := 0; r < 5; r++ {
+	for range 5 {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			for i := 0; i < 200; i++ {
+			for i := range 200 {
 				result := u.GetAfter(uint(i % max(u.Len(), 1)))
 				_ = len(result)
 			}
@@ -425,23 +425,23 @@ func TestUnitfieldList_ConcurrentAddAndGet(t *testing.T) {
 func TestUnitfieldList_ConcurrentReadWrite(t *testing.T) {
 	u := NewUnitfieldList()
 	var wg sync.WaitGroup
-	for i := 0; i < 100; i++ {
+	for i := range 100 {
 		u.Add(Int(fmt.Sprintf("init_%d", i), i))
 	}
-	for w := 0; w < 5; w++ {
+	for w := range 5 {
 		wg.Add(1)
 		go func(id int) {
 			defer wg.Done()
-			for i := 0; i < 100; i++ {
+			for i := range 100 {
 				u.Add(Int(fmt.Sprintf("w%d_%d", id, i), id*100+i))
 			}
 		}(w)
 	}
-	for r := 0; r < 3; r++ {
+	for range 3 {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			for i := 0; i < 50; i++ {
+			for i := range 50 {
 				u.RemoveAfter(uint(i % max(u.Len(), 1)))
 			}
 		}()

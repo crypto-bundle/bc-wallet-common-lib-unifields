@@ -157,18 +157,19 @@ batch := stack.PopN(2)      // []Unifielder; nil if stack empty
 stack.Clear()
 ```
 
-**Thread safety:** All `UnifieldStack` methods are safe for concurrent access from multiple goroutines. Write operations (`Push`, `PushFields`, `Pop`, `PopN`, `Clear`) acquire an exclusive lock; read-only operations (`Len`, `GetTop`, `Peek`) use shared read locks, allowing concurrent readers. See AGENTS.md for the public/private `*NoLock` pattern.
+**Thread safety:** All `UnifieldStack` methods are safe for concurrent access from multiple goroutines. Write operations (`Push`, `PushFields`, `Pop`, `PopN`, `Clear`, `Flush`) acquire an exclusive lock; read-only operations (`Len`, `GetTop`, `Peek`) use shared read locks, allowing concurrent readers. See AGENTS.md for the public/private `*NoLock` pattern.
 
 Available methods:
 - `NewUnifieldStack()` — creates an empty stack
 - `Push(fld unifolderv2.Unifielder)` — pushes one element onto the stack (accepts val/ptr)
 - `PushFields(fields ...unifolderv2.Unifielder)` — pushes multiple elements (cloned)
-- `Pop() unifolderv2.Unifielder` — pops and returns the top element; `nil` if empty
+- `Pop() unifolderv2.Unifielder` — pops and returns a clone of the top element; original is returned to an internal pool; `nil` if empty
 - `PopField() unifolderv2.Unifielder` — alias for Pop()
-- `PopN(count int) []unifolderv2.Unifielder` — pops up to `count` elements; `nil` if empty or `count <= 0`
+- `PopN(count int) []unifolderv2.Unifielder` — pops up to `count` elements as clones; originals are returned to the pool; `nil` if empty or `count <= 0`
+- `Flush() []unifolderv2.Unifielder` — removes and returns ALL elements as clones; stack becomes empty; originals go to pool
 - `Peek() unifolderv2.Unifielder` — synonym for GetTop(), no mutation
 - `GetTop() unifolderv2.Unifielder` — returns top without removing; `nil` if empty
-- `Clear()` — resets the stack to empty
+- `Clear()` — resets the stack to empty; all elements returned to the pool
 - `Len() int` — current number of elements
 
 ## Choosing Between `val` and `ptr`

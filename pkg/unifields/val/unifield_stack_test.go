@@ -60,7 +60,7 @@ func TestPush(t *testing.T) {
 	}
 	if got := stack.GetTop(); got == nil {
 		t.Error("expected GetTop to return non-nil after Push")
-	} else if u := got.(Unifield); u.key != "a" { //nolint:forcetypeassert
+	} else if u := got.(Unifield); u.key != "a" {
 		t.Errorf("expected top key == 'a', got %q", u.key)
 	}
 
@@ -70,7 +70,7 @@ func TestPush(t *testing.T) {
 	}
 	if got := stack.GetTop(); got == nil {
 		t.Error("expected GetTop to return non-nil after double Push")
-	} else if u := got.(Unifield); u.key != "b" { //nolint:forcetypeassert
+	} else if u := got.(Unifield); u.key != "b" {
 		t.Errorf("expected top key == 'b' (LIFO), got %q", u.key)
 	}
 }
@@ -92,7 +92,7 @@ func TestPushFields(t *testing.T) {
 	}
 	if got := stack.GetTop(); got == nil {
 		t.Error("expected GetTop to return non-nil")
-	} else if u := got.(Unifield); u.key != "f3" { //nolint:forcetypeassert
+	} else if u := got.(Unifield); u.key != "f3" {
 		t.Errorf("expected top == 'f3' (last pushed), got %q", u.key)
 	}
 }
@@ -136,7 +136,7 @@ func TestPop(t *testing.T) {
 	if popped == nil {
 		t.Fatal("expected non-nil Pop result")
 	}
-	if u := popped.(Unifield); u.key != "y" { //nolint:forcetypeassert
+	if u := popped.(Unifield); u.key != "y" {
 		t.Errorf("expected top popped key == 'y' (LIFO), got %q", u.key)
 	}
 	if stack.Len() != 1 {
@@ -147,7 +147,7 @@ func TestPop(t *testing.T) {
 	if popped2 == nil {
 		t.Fatal("expected non-nil second Pop result")
 	}
-	if u := popped2.(Unifield); u.key != "x" { //nolint:forcetypeassert
+	if u := popped2.(Unifield); u.key != "x" {
 		t.Errorf("expected second pop key == 'x', got %q", u.key)
 	}
 	if stack.Len() != 0 {
@@ -166,7 +166,7 @@ func TestPopField(t *testing.T) {
 	if result == nil {
 		t.Fatal("expected non-nil PopField result")
 	}
-	if u := result.(Unifield); u.key != "a" { //nolint:forcetypeassert
+	if u := result.(Unifield); u.key != "a" {
 		t.Errorf("expected key == 'a' from PopField, got %q", u.key)
 	}
 	if stack.Len() != 0 {
@@ -211,10 +211,10 @@ func TestPopN(t *testing.T) {
 	if len(popped) != 2 {
 		t.Fatalf("expected 2 popped, got %d", len(popped))
 	}
-	if b := popped[0].(Unifield); b.key != "b" { //nolint:forcetypeassert
-		t.Errorf("expected [b,c] (slice order), got keys [%q,%q]", b.key, popped[1].(Unifield).key) //nolint:forcetypeassert
+	if b := popped[0].(Unifield); b.key != "b" {
+		t.Errorf("expected [b,c] (slice order), got keys [%q,%q]", b.key, popped[1].(Unifield).key)
 	}
-	if c := popped[1].(Unifield); c.key != "c" { //nolint:forcetypeassert
+	if c := popped[1].(Unifield); c.key != "c" {
 		t.Errorf("expected second element key == 'c', got %q", c.key)
 	}
 	if stack.Len() != 1 {
@@ -226,7 +226,7 @@ func TestPopN(t *testing.T) {
 	if top == nil {
 		t.Fatal("expected non-nil GetTop after partial PopN")
 	}
-	if u := top.(Unifield); u.key != "a" { //nolint:forcetypeassert
+	if u := top.(Unifield); u.key != "a" {
 		t.Errorf("expected remaining top == 'a', got %q", u.key)
 	}
 
@@ -257,7 +257,7 @@ func TestGetTop(t *testing.T) {
 	if got == nil {
 		t.Fatal("expected non-nil GetTop after Push")
 	}
-	if u := got.(Unifield); u.key != "a" { //nolint:forcetypeassert
+	if u := got.(Unifield); u.key != "a" {
 		t.Errorf("expected GetTop == 'a', got %q", u.key)
 	}
 	if stack.Len() != 1 {
@@ -269,7 +269,7 @@ func TestGetTop(t *testing.T) {
 	if top == nil {
 		t.Fatal("expected non-nil GetTop")
 	}
-	if u := top.(Unifield); u.key != "b" { //nolint:forcetypeassert
+	if u := top.(Unifield); u.key != "b" {
 		t.Errorf("expected top after double push == 'b', got %q", u.key)
 	}
 	if stack.Len() != 2 {
@@ -295,14 +295,14 @@ func TestPeek(t *testing.T) {
 	if first == nil {
 		t.Fatal("expected non-nil Peek")
 	}
-	if u := first.(Unifield); u.key != "key" { //nolint:forcetypeassert
+	if u := first.(Unifield); u.key != "key" {
 		t.Errorf("expected Peek == 'key', got %q", u.key)
 	}
 	second := stack.Peek()
 	if second == nil {
 		t.Fatal("expected non-nil second Peek")
 	}
-	if u := second.(Unifield); u.key != "key" { //nolint:forcetypeassert
+	if u := second.(Unifield); u.key != "key" {
 		t.Errorf("expected Peek == 'key' again, got %q", u.key)
 	}
 	if stack.Len() != 1 {
@@ -393,7 +393,7 @@ func TestMixedTypes(t *testing.T) {
 		if popped == nil {
 			t.Fatalf("pop returned nil instead of stored element")
 		}
-		key := popped.(Unifield).key //nolint:forcetypeassert
+		key := popped.(Unifield).key
 		if key == "" {
 			t.Fatalf("pop had empty key")
 		}
@@ -418,7 +418,7 @@ func TestImmutability(t *testing.T) {
 	if top == nil {
 		t.Fatal("expected non-nil GetTop")
 	}
-	if u := top.(Unifield); u.key != "key" { //nolint:forcetypeassert
+	if u := top.(Unifield); u.key != "key" {
 		t.Errorf("expected immutable key == 'key', got %q", u.key)
 	}
 }

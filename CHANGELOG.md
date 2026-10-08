@@ -1,5 +1,20 @@
 # Change Log
 
+## [v0.0.8] — 2026-10-08
+
+### Added
+- Automatic memory pre-allocation for `val.Unifield` via `sync.Pool` — factory functions now reuse pooled instances for reduced GC pressure
+- New `Flush()` method on `UnifieldStack` — removes and returns all elements as a slice of clones; originals are returned to the pool
+- Automatic pool recycling in list removal operations (`Clear`, `RemoveAfter`, `RemoveBefore`) — recycled `val.Unifield` instances are returned to the internal pool
+- Automatic pool recycling in stack operations (`Pop`, `PopN`, `Clear`, `Flush`) — popped items are cloned before return; originals go to pool
+- `returnValToPool()` helper — type-safe pool return that silently skips non-`val.Unifield` items (e.g., `*ptr.UnifieldPtr`)
+
+### Changed
+- Factory functions now use `sync.Pool` for reduced allocation churn (per-call memory footprint unchanged: 112 B/op, 1 alloc/op)
+- `Pop()` and `PopN()` now return **clones** of popped elements instead of direct references — preserves immutability invariant
+- `UnitfieldList.Clear()`, `RemoveAfter()`, `RemoveBefore()` now delegate to `*NoLock` variants with pool recycling
+- `UnifieldStack.pop()`, `popNNolockInt()`, `clearNoLock()` updated to clone-before-pool pattern
+
 ## [v0.0.7] — 2026-10-08
 
 ### Added
