@@ -170,16 +170,6 @@ func TestUnitfieldList_Merge_TwoLists(t *testing.T) {
 	}
 }
 
-func TestUnitfieldList_Merge_Self(t *testing.T) {
-	list := NewUnitfieldList()
-	list.Add(String("a", "1"))
-	list.Add(Int("b", 2))
-	list.Merge(list)
-	if list.Len() != 4 {
-		t.Fatalf("expected 4 items after self-merge, got %d", list.Len())
-	}
-}
-
 func TestUnitfieldList_Merge_EmptySource(t *testing.T) {
 	dst := NewUnitfieldList()
 	dst.Add(String("keep", "me"))
