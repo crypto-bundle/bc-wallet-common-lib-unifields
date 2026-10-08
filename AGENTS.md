@@ -70,6 +70,25 @@ pkg/unifields/
 
 Each exported method delegates to a private `*NoLock` variant that assumes the caller already holds the appropriate lock. Never call a `*NoLock` method without holding the lock — this prevents deadlocks from recursive lock acquisition.
 
+### UnitfieldList thread safety (`val.UnitfieldList`)
+
+`val.UnitfieldList` uses `sync.RWMutex` for safe concurrent access from multiple goroutines:
+- Write operations (Add, AddAll, Merge, Remove*, Clear): `mu.Lock()` / `defer mu.Unlock()`
+- Read operations (GetAfter, Len, Items): `mu.RLock()` / `defer mu.RUnlock()`
+- Each public method delegates to private `*NoLock` variants (lock assumed held by caller)
+- `Merge(source *UnitfieldList)` acquires exclusive lock on caller (`u`) and shared RLock on source (`source`)
+- **Critical:** DO NOT call `list.Merge(list)` — self-merge causes deadlock because the same mutex is locked both exclusively (via Lock()) and subsequently for reading (via RLock()). Since Go's sync.RWMutex is not reentrant, RLock() blocks waiting for exclusive release, but exclusive lock holder never releases it.
+
+#### Public/private locking matrix
+
+| Exported method | Lock type | Private counterpart |
+|----------------|-----------|---------------------|
+| `Add`, `AddAll`, `RemoveAfter`, `RemoveBefore`, `Clear` | `mu.Lock()` / `defer mu.Unlock()` | `addNoLock`, `addAllNoLock`, `removeAfterNoLock`, `removeBeforeNoLock`, `clearNoLock` |
+| `GetAfter` | `mu.RLock()` / `defer mu.RUnlock()` | `getAfterNoLock` |
+| `Len` | `mu.RLock()` / `defer mu.RUnlock()` | `lenNoLock` |
+| `Items` | `mu.RLock()` / `defer mu.RUnlock()` | `itemsNoLock` |
+| `Merge(*UnitfieldList)` | `mu.Lock()` on `this`, `mu.RLock()` on `source` | `mergeNoLock` |
+
 #### Public/private locking matrix
 
 | Exported method | Lock type | Private counterpart |

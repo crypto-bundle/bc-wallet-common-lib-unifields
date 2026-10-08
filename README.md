@@ -10,6 +10,7 @@ A Go library providing a `zapcore.Field`-like typed value container called **Uni
 - **15 supported types**: string, integers (`int`, `int8`–`int64`, `uint`, `uint8`–`uint64`), floats (`float32`, `float64`), `error`, and `time.Time`
 - **Flat storage** — one struct, no heap allocation per field (val variant)
 - **Typed deserialization** via `MarshalTo*` methods with descriptive errors on type mismatch
+- **Thread-safe** via `sync.RWMutex` on `UnitfieldList` — supports concurrent reads/writes from multiple goroutines
 - **Immutable collection** — accepts both `val.Unifield` and `ptr.UnifieldPtr` via [Unifielder](./pkg/unifields/unifielder/common.go) interface
 - **Zero allocations** when used as pure value types
 
@@ -113,7 +114,7 @@ Available methods:
 - `NewUnitfieldList()` — creates an empty collection
 - `Add(fld Unifielder)` — adds a cloned Unifielder
 - `AddAll(flds []Unifielder)` — bulk adds cloned Unifielders
-- `Merge(list UnitfieldList)` — appends all items from another list (each element is cloned)
+- `Merge(source *UnitfieldList)` — appends all items from source list (each element is cloned); **source must not be the same as receiver** (deadlock due to non-reentrant mutex)
 - `GetAfter(index uint) []Unifielder` — returns copy of items starting from index N (inclusive)
 - `RemoveAfter(index uint)` — keeps element at index, drops everything after it
 - `RemoveBefore(index uint)` — keeps element at index, drops everything before it
@@ -187,7 +188,7 @@ See `.agents/reports/benchmarks_val_unifield.md` for detailed benchmark results.
 ```
 pkg/unifields/
 ├── unified_field.go              # Type alias + factory wrappers
-├── unitfield_list.go             # UnitfieldList type, NewUnitfieldList, 17 typed adders
+├── unitfield_list.go             # Type alias only (val.UnitfieldList)
 ├── unified_fields.go             # Deprecated Unifields collection + Unifielder interface alias
 ├── unified_fields_test.go        # Collection tests (polymorphic val/ptr)
 ├── unifielder/
@@ -257,7 +258,7 @@ Both `val.Unifield` and `ptr.UnifieldPtr` support identical APIs for the same 15
 
 | Method | Description |
 |--------|-------------|
-| `Merge(list UnitfieldList)` | Appends all items from another list (each cloned) |
+| `Merge(source *UnitfieldList)` | Appends items from source list (each cloned); **DO NOT pass same list as receiver and source** (deadlock) |
 | `GetAfter(index uint) []Unifielder` | Returns copy of items starting from index N (inclusive) |
 | `RemoveAfter(index uint)` | Keeps element at index, drops everything after |
 | `RemoveBefore(index uint)` | Keeps element at index, drops everything before |
