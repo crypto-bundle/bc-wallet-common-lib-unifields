@@ -198,107 +198,107 @@ func (u *UnitfieldList) Items() []unifolderv2.Unifielder {
 	return out
 }
 
-// AddStr adds a string-typed Unifield with the given key and value.
-func (u *UnitfieldList) AddStr(key string, value string) {
+// AddStr adds a string-typed Unifield to the list.
+func (u *UnitfieldList) AddStr(value string) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
-	u.items = append(u.items, String(key, value))
+	u.items = append(u.items, String(value))
 }
 
-// AddInt adds an int-typed Unifield with the given key and value.
-func (u *UnitfieldList) AddInt(key string, value int) {
+// AddInt adds an int-typed Unifield to the list.
+func (u *UnitfieldList) AddInt(value int) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
-	u.items = append(u.items, Int(key, value))
+	u.items = append(u.items, Int(value))
 }
 
-// AddInt8 adds an int8-typed Unifield with the given key and value.
-func (u *UnitfieldList) AddInt8(key string, value int8) {
+// AddInt8 adds an int8-typed Unifield to the list.
+func (u *UnitfieldList) AddInt8(value int8) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
-	u.items = append(u.items, Int8(key, value))
+	u.items = append(u.items, Int8(value))
 }
 
-// AddInt16 adds an int16-typed Unifield with the given key and value.
-func (u *UnitfieldList) AddInt16(key string, value int16) {
+// AddInt16 adds an int16-typed Unifield to the list.
+func (u *UnitfieldList) AddInt16(value int16) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
-	u.items = append(u.items, Int16(key, value))
+	u.items = append(u.items, Int16(value))
 }
 
-// AddInt32 adds an int32-typed Unifield with the given key and value.
-func (u *UnitfieldList) AddInt32(key string, value int32) {
+// AddInt32 adds an int32-typed Unifield to the list.
+func (u *UnitfieldList) AddInt32(value int32) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
-	u.items = append(u.items, Int32(key, value))
+	u.items = append(u.items, Int32(value))
 }
 
-// AddInt64 adds an int64-typed Unifield with the given key and value.
-func (u *UnitfieldList) AddInt64(key string, value int64) {
+// AddInt64 adds an int64-typed Unifield to the list.
+func (u *UnitfieldList) AddInt64(value int64) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
-	u.items = append(u.items, Int64(key, value))
+	u.items = append(u.items, Int64(value))
 }
 
-// AddUint adds a uint-typed Unifield with the given key and value.
-func (u *UnitfieldList) AddUint(key string, value uint) {
+// AddUint adds a uint-typed Unifield to the list.
+func (u *UnitfieldList) AddUint(value uint) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
-	u.items = append(u.items, Uint(key, value))
+	u.items = append(u.items, Uint(value))
 }
 
-// AddUint8 adds a uint8-typed Unifield with the given key and value.
-func (u *UnitfieldList) AddUint8(key string, value uint8) {
+// AddUint8 adds a uint8-typed Unifield to the list.
+func (u *UnitfieldList) AddUint8(value uint8) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
-	u.items = append(u.items, Uint8(key, value))
+	u.items = append(u.items, Uint8(value))
 }
 
-// AddUint16 adds a uint16-typed Unifield with the given key and value.
-func (u *UnitfieldList) AddUint16(key string, value uint16) {
+// AddUint16 adds a uint16-typed Unifield to the list.
+func (u *UnitfieldList) AddUint16(value uint16) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
-	u.items = append(u.items, Uint16(key, value))
+	u.items = append(u.items, Uint16(value))
 }
 
-// AddUint32 adds a uint32-typed Unifield with the given key and value.
-func (u *UnitfieldList) AddUint32(key string, value uint32) {
+// AddUint32 adds a uint32-typed Unifield to the list.
+func (u *UnitfieldList) AddUint32(value uint32) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
-	u.items = append(u.items, Uint32(key, value))
+	u.items = append(u.items, Uint32(value))
 }
 
-// AddUint64 adds a uint64-typed Unifield with the given key and value.
-func (u *UnitfieldList) AddUint64(key string, value uint64) {
+// AddUint64 adds a uint64-typed Unifield to the list.
+func (u *UnitfieldList) AddUint64(value uint64) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
-	u.items = append(u.items, Uint64(key, value))
+	u.items = append(u.items, Uint64(value))
 }
 
-// AddFloat32 adds a float32-typed Unifield with the given key and value.
-func (u *UnitfieldList) AddFloat32(key string, value float32) {
+// AddFloat32 adds a float32-typed Unifield to the list.
+func (u *UnitfieldList) AddFloat32(value float32) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
-	u.items = append(u.items, Float32(key, value))
+	u.items = append(u.items, Float32(value))
 }
 
-// AddFloat64 adds a float64-typed Unifield with the given key and value.
-func (u *UnitfieldList) AddFloat64(key string, value float64) {
+// AddFloat64 adds a float64-typed Unifield to the list.
+func (u *UnitfieldList) AddFloat64(value float64) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
-	u.items = append(u.items, Float64(key, value))
+	u.items = append(u.items, Float64(value))
 }
 
-// AddErr adds an error-typed Unifield with the given key and value.
-func (u *UnitfieldList) AddErr(key string, value error) {
+// AddErr adds an error-typed Unifield to the list.
+func (u *UnitfieldList) AddErr(value error) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
-	u.items = append(u.items, Err(key, value))
+	u.items = append(u.items, Err(value))
 }
 
-// AddTime adds a time.Time-typed Unifield with the given key and value.
-func (u *UnitfieldList) AddTime(key string, value time.Time) {
+// AddTime adds a time.Time-typed Unifield to the list.
+func (u *UnitfieldList) AddTime(value time.Time) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
-	u.items = append(u.items, Time(key, value))
+	u.items = append(u.items, Time(value))
 }

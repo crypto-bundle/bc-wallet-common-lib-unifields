@@ -45,7 +45,7 @@
 // # Creating Typed Values
 //
 // Each sub-package provides factory functions that create typed value containers.
-// Factory functions take a key string and a typed value:
+// Factory functions accept only a typed value (the previous key parameter has been removed):
 //
 //	import (
 //	    "github.com/crypto-bundle/bc-wallet-common-lib-unifields/pkg/unifields"
@@ -54,12 +54,12 @@
 //	)
 //
 //	// Value-based (zero alloc)
-//	f1 := val.String("name", "alice")
-//	f2 := val.Int("status_code", 200)
+//	f1 := val.String("alice")
+//	f2 := val.Int(200)
 //
 //	// Pointer-based (one alloc per call)
-//	f3 := ptr.Int("user_id", 1234)
-//	f4 := ptr.Err("error", someErr)
+//	f3 := ptr.Int(1234)
+//	f4 := ptr.Err(someErr)
 //
 // # Reading values
 //

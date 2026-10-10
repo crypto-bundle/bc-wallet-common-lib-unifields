@@ -44,7 +44,7 @@ func BenchmarkUnitfieldList_Add_SingleVal(b *testing.B) {
 	b.ReportAllocs()
 	for range b.N {
 		u := NewUnitfieldList()
-		u.Add(String("key", "value"))
+		u.Add(String("value"))
 	}
 }
 
@@ -52,17 +52,17 @@ func BenchmarkUnitfieldList_Add_SingleInt(b *testing.B) {
 	b.ReportAllocs()
 	for range b.N {
 		u := NewUnitfieldList()
-		u.Add(Int("counter", 42))
+		u.Add(Int(42))
 	}
 }
 
 func BenchmarkUnitfieldList_AddAll_10(b *testing.B) {
 	b.ReportAllocs()
 	items := []unifolderv2.Unifielder{
-		String("a", "1"), Int("b", 2), String("c", "3"),
-		Int("d", 4), String("e", "5"), Uint("f", 6),
-		Uint64("g", 7), Float32("h", 8.1), Float64("i", 9.9),
-		String("j", "last"),
+		String("1"), Int(2), String("3"),
+		Int(4), String("5"), Uint(6),
+		Uint64(7), Float32(8.1), Float64(9.9),
+		String("last"),
 	}
 	for range b.N {
 		u := NewUnitfieldList()
@@ -74,7 +74,7 @@ func BenchmarkUnitfieldList_AddAll_1000(b *testing.B) {
 	b.ReportAllocs()
 	items := make([]unifolderv2.Unifielder, 1000)
 	for j := range 1000 {
-		items[j] = String("key", string(rune(j)))
+		items[j] = String(string(rune(j)))
 	}
 	for range b.N {
 		u := NewUnitfieldList()
@@ -130,7 +130,7 @@ func BenchmarkUnitfieldList_Clear_FastReset(b *testing.B) {
 	for range b.N {
 		u := NewUnitfieldList()
 		for range 200 {
-			u.Add(String("r", string(rune('a'+len(u.items)%26))))
+			u.Add(String(string(rune('a'+len(u.items)%26))))
 		}
 		u.Clear()
 	}
@@ -139,8 +139,8 @@ func BenchmarkUnitfieldList_Clear_FastReset(b *testing.B) {
 // newUnitfieldListValue creates a UnitfieldList with count items using the given prefix.
 func newUnitfieldListValue(count int, prefix string) *UnitfieldList {
 	u := NewUnitfieldList()
-	for k := range count {
-		u.Add(String(prefix+string(rune(k)), prefix))
+	for range count {
+		u.Add(String(prefix))
 	}
 	return u
 }
