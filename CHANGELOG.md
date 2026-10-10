@@ -2,10 +2,11 @@
 
 ## [v0.0.9] — 2026-10-09
 
-### Breaking Change
+### Changed 
+
+**Breaking Changes**:
 
 Removed the unused `key` parameter from all factory functions. This simplifies usage and reduces memory per object by ~8–16 bytes. If you create values like `unifields.String("id", value)`, just drop the first argument: `unifields.String(value)`.
-
 
 ## [v0.0.8] — 2026-10-08
 
