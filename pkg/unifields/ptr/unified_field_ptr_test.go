@@ -40,14 +40,9 @@ var errTest = errors.New("test error value")
 func TestStringFactory(t *testing.T) {
 	t.Parallel()
 
-	key := "test_key"
 	val := "hello"
 
-	u := String(key, val)
-
-	if u.key != key {
-		t.Errorf("key = %q, want %q", u.key, key)
-	}
+	u := String(val)
 	if u.type_ != valueString {
 		t.Errorf("type_ = %v, want valueString", u.type_)
 	}
@@ -63,7 +58,7 @@ func TestStringImmutability(t *testing.T) {
 	t.Parallel()
 
 	val := "original"
-	u := String("k", val)
+	u := String(val)
 
 	// Mutate original after factory call.
 	val = " mutated" //nolint:ineffassign,wastedassign // verifies immutability: mutation must NOT affect stored value
@@ -76,7 +71,7 @@ func TestStringImmutability(t *testing.T) {
 func TestStringZeroValue(t *testing.T) {
 	t.Parallel()
 
-	u := String("k", "")
+	u := String("")
 
 	if u.type_ != valueString {
 		t.Errorf("type_ = %v, want valueString", u.type_)
@@ -91,9 +86,6 @@ func TestStringZeroValue(t *testing.T) {
 func checkIntStorage(t *testing.T, u UnifieldPtr, expected int64, wantType valueType) {
 	t.Helper()
 
-	if u.key != "k" {
-		t.Errorf("key = %q, want \"k\"", u.key)
-	}
 	if u.type_ != wantType {
 		t.Errorf("type_ = %v, want %v", u.type_, wantType)
 	}
@@ -112,7 +104,7 @@ func TestIntFactory(t *testing.T) {
 	t.Parallel()
 
 	const val = 42
-	u := Int("k", val)
+	u := Int(val)
 
 	checkIntStorage(t, u, int64(val), valueInt)
 }
@@ -121,7 +113,7 @@ func TestInt8Factory(t *testing.T) {
 	t.Parallel()
 
 	const val = int8(127)
-	u := Int8("k", val)
+	u := Int8(val)
 
 	checkIntStorage(t, u, int64(val), valueInt8)
 }
@@ -130,7 +122,7 @@ func TestInt16Factory(t *testing.T) {
 	t.Parallel()
 
 	const val = int16(-100)
-	u := Int16("k", val)
+	u := Int16(val)
 
 	checkIntStorage(t, u, int64(val), valueInt16)
 }
@@ -139,7 +131,7 @@ func TestInt32Factory(t *testing.T) {
 	t.Parallel()
 
 	const val = int32(999999)
-	u := Int32("k", val)
+	u := Int32(val)
 
 	checkIntStorage(t, u, int64(val), valueInt32)
 }
@@ -148,7 +140,7 @@ func TestInt64Factory(t *testing.T) {
 	t.Parallel()
 
 	const val = int64(-9223372036854775808) // min int64
-	u := Int64("k", val)
+	u := Int64(val)
 
 	checkIntStorage(t, u, val, valueInt64)
 }
@@ -157,7 +149,7 @@ func TestIntImmutability(t *testing.T) {
 	t.Parallel()
 
 	val := int(100)
-	u := Int("k", val)
+	u := Int(val)
 	val = 200 //nolint:ineffassign,wastedassign // verifies immutability: mutation must NOT affect stored value
 
 	if *u.i64P != 100 {
@@ -168,7 +160,7 @@ func TestIntImmutability(t *testing.T) {
 func TestIntZeroValue(t *testing.T) {
 	t.Parallel()
 
-	u := Int("k", 0)
+	u := Int(0)
 
 	if u.type_ != valueInt {
 		t.Errorf("type_ = %v, want valueInt", u.type_)
@@ -183,9 +175,6 @@ func TestIntZeroValue(t *testing.T) {
 func checkUintStorage(t *testing.T, u UnifieldPtr, expected uint64, wantType valueType) {
 	t.Helper()
 
-	if u.key != "k" {
-		t.Errorf("key = %q, want \"k\"", u.key)
-	}
 	if u.type_ != wantType {
 		t.Errorf("type_ = %v, want %v", u.type_, wantType)
 	}
@@ -204,7 +193,7 @@ func TestUintFactory(t *testing.T) {
 	t.Parallel()
 
 	const val = uint(12345)
-	u := Uint("k", val)
+	u := Uint(val)
 
 	checkUintStorage(t, u, uint64(val), valueUint)
 }
@@ -213,7 +202,7 @@ func TestUint8Factory(t *testing.T) {
 	t.Parallel()
 
 	const val = uint8(255)
-	u := Uint8("k", val)
+	u := Uint8(val)
 
 	checkUintStorage(t, u, uint64(val), valueUint8)
 }
@@ -222,7 +211,7 @@ func TestUint16Factory(t *testing.T) {
 	t.Parallel()
 
 	const val = uint16(65535)
-	u := Uint16("k", val)
+	u := Uint16(val)
 
 	checkUintStorage(t, u, uint64(val), valueUint16)
 }
@@ -231,7 +220,7 @@ func TestUint32Factory(t *testing.T) {
 	t.Parallel()
 
 	const val = uint32(4294967295)
-	u := Uint32("k", val)
+	u := Uint32(val)
 
 	checkUintStorage(t, u, uint64(val), valueUint32)
 }
@@ -240,7 +229,7 @@ func TestUint64Factory(t *testing.T) {
 	t.Parallel()
 
 	const val = uint64(18446744073709551615) // max uint64
-	u := Uint64("k", val)
+	u := Uint64(val)
 
 	checkUintStorage(t, u, val, valueUint64)
 }
@@ -249,7 +238,7 @@ func TestUintImmutability(t *testing.T) {
 	t.Parallel()
 
 	val := uint(999)
-	u := Uint("k", val)
+	u := Uint(val)
 	val = 777 //nolint:ineffassign,wastedassign // verifies immutability: mutation must NOT affect stored value
 
 	if *u.u64P != 999 {
@@ -260,7 +249,7 @@ func TestUintImmutability(t *testing.T) {
 func TestUintZeroValue(t *testing.T) {
 	t.Parallel()
 
-	u := Uint("k", 0)
+	u := Uint(0)
 
 	if u.type_ != valueUint {
 		t.Errorf("type_ = %v, want valueUint", u.type_)
@@ -276,11 +265,8 @@ func TestFloat32Factory(t *testing.T) {
 	t.Parallel()
 
 	val := float32(3.14159)
-	u := Float32("k", val)
+	u := Float32(val)
 
-	if u.key != "k" {
-		t.Errorf("key = %q, want \"k\"", u.key)
-	}
 	if u.type_ != valueFloat32 {
 		t.Errorf("type_ = %v, want valueFloat32", u.type_)
 	}
@@ -299,11 +285,8 @@ func TestFloat64Factory(t *testing.T) {
 	t.Parallel()
 
 	val := 2.99792458e8 // speed of light
-	u := Float64("k", val)
+	u := Float64(val)
 
-	if u.key != "k" {
-		t.Errorf("key = %q, want \"k\"", u.key)
-	}
 	if u.type_ != valueFloat64 {
 		t.Errorf("type_ = %v, want valueFloat64", u.type_)
 	}
@@ -322,7 +305,7 @@ func TestFloat32Immutability(t *testing.T) {
 	t.Parallel()
 
 	val := float32(1.5)
-	u := Float32("k", val)
+	u := Float32(val)
 	val = 9.9 //nolint:ineffassign,wastedassign // verifies immutability: mutation must NOT affect stored value
 
 	if float32(*u.f64P) != 1.5 {
@@ -333,7 +316,7 @@ func TestFloat32Immutability(t *testing.T) {
 func TestFloat32ZeroValue(t *testing.T) {
 	t.Parallel()
 
-	u := Float32("k", 0)
+	u := Float32(0)
 
 	if u.type_ != valueFloat32 {
 		t.Errorf("type_ = %v, want valueFloat32", u.type_)
@@ -349,11 +332,8 @@ func TestErrFactory(t *testing.T) {
 	t.Parallel()
 
 	wantErr := errors.New("test error")
-	u := Err("k", wantErr)
+	u := Err(wantErr)
 
-	if u.key != "k" {
-		t.Errorf("key = %q, want \"k\"", u.key)
-	}
 	if u.type_ != valueError {
 		t.Errorf("type_ = %v, want valueError", u.type_)
 	}
@@ -372,7 +352,7 @@ func TestErrFactory(t *testing.T) {
 func TestErrNilIsEmpty(t *testing.T) {
 	t.Parallel()
 
-	u := Err("k", nil)
+	u := Err(nil)
 
 	if u.type_ != valueEmpty {
 		t.Errorf("type_ = %v, want valueEmpty for nil error", u.type_)
@@ -385,11 +365,8 @@ func TestTimeFactory(t *testing.T) {
 	t.Parallel()
 
 	want := time.Date(2025, 6, 15, 10, 30, 45, 123456789, time.UTC)
-	u := Time("k", want)
+	u := Time(want)
 
-	if u.key != "k" {
-		t.Errorf("key = %q, want \"k\"", u.key)
-	}
 	if u.type_ != valueTime {
 		t.Errorf("type_ = %v, want valueTime", u.type_)
 	}
@@ -408,7 +385,7 @@ func TestTimeImmutability(t *testing.T) {
 	t.Parallel()
 
 	want := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
-	u := Time("k", want)
+	u := Time(want)
 
 	// Mutate original: Go's time.Time is a struct so reassignment works.
 	wants := want.Add(time.Hour)
@@ -423,7 +400,7 @@ func TestTimeImmutability(t *testing.T) {
 func TestTimeZeroValue(t *testing.T) {
 	t.Parallel()
 
-	u := Time("k", time.Time{})
+	u := Time(time.Time{})
 
 	if u.type_ != valueTime {
 		t.Errorf("type_ = %v, want valueTime", u.type_)
@@ -441,16 +418,14 @@ func TestTimeZeroValue(t *testing.T) {
 func TestCloneSeparation(t *testing.T) {
 	t.Parallel()
 
-	ptrSrc := Int("k", 100)
+	ptrSrc := Int(100)
 	ptrCloned := ptrSrc.Clone()
 
 	// Both point to same heap int64, but the struct itself is copied.
 	// Since we don't expose mutable APIs, Clone separation here means
 	// the struct-level fields (key, type_) are independent copies.
 	clonedVal := ptrCloned.(UnifieldPtr)
-	if ptrSrc.key != clonedVal.key {
-		t.Errorf("cloned key = %q, want %q", clonedVal.key, ptrSrc.key)
-	}
+
 	if ptrSrc.type_ != clonedVal.type_ {
 		t.Errorf("cloned type_ = %v, want %v", clonedVal.type_, ptrSrc.type_)
 	}
@@ -463,7 +438,7 @@ func TestCloneSeparation(t *testing.T) {
 func TestMarshalToStr(t *testing.T) {
 	t.Parallel()
 
-	u := String("k", "hello")
+	u := String("hello")
 	var got string
 	if err := u.MarshalToStr(&got); err != nil {
 		t.Fatalf("MarshalToStr failed: %v", err)
@@ -476,7 +451,7 @@ func TestMarshalToStr(t *testing.T) {
 func TestMarshalToInt(t *testing.T) {
 	t.Parallel()
 
-	u := Int("k", 42)
+	u := Int(42)
 	var got int
 	if err := u.MarshalToInt(&got); err != nil {
 		t.Fatalf("MarshalToInt failed: %v", err)
@@ -489,7 +464,7 @@ func TestMarshalToInt(t *testing.T) {
 func TestMarshalToInt8(t *testing.T) {
 	t.Parallel()
 
-	u := Int8("k", 127)
+	u := Int8(127)
 	var got int8
 	if err := u.MarshalToInt8(&got); err != nil {
 		t.Fatalf("MarshalToInt8 failed: %v", err)
@@ -502,7 +477,7 @@ func TestMarshalToInt8(t *testing.T) {
 func TestMarshalToInt16(t *testing.T) {
 	t.Parallel()
 
-	u := Int16("k", -32768)
+	u := Int16(-32768)
 	var got int16
 	if err := u.MarshalToInt16(&got); err != nil {
 		t.Fatalf("MarshalToInt16 failed: %v", err)
@@ -515,7 +490,7 @@ func TestMarshalToInt16(t *testing.T) {
 func TestMarshalToInt32(t *testing.T) {
 	t.Parallel()
 
-	u := Int32("k", 123456789)
+	u := Int32(123456789)
 	var got int32
 	if err := u.MarshalToInt32(&got); err != nil {
 		t.Fatalf("MarshalToInt32 failed: %v", err)
@@ -528,7 +503,7 @@ func TestMarshalToInt32(t *testing.T) {
 func TestMarshalToInt64(t *testing.T) {
 	t.Parallel()
 
-	u := Int64("k", 9223372036854775807)
+	u := Int64(9223372036854775807)
 	var got int64
 	if err := u.MarshalToInt64(&got); err != nil {
 		t.Fatalf("MarshalToInt64 failed: %v", err)
@@ -541,7 +516,7 @@ func TestMarshalToInt64(t *testing.T) {
 func TestMarshalToUint(t *testing.T) {
 	t.Parallel()
 
-	u := Uint("k", 12345)
+	u := Uint(12345)
 	var got uint
 	if err := u.MarshalToUint(&got); err != nil {
 		t.Fatalf("MarshalToUint failed: %v", err)
@@ -554,7 +529,7 @@ func TestMarshalToUint(t *testing.T) {
 func TestMarshalToUint8(t *testing.T) {
 	t.Parallel()
 
-	u := Uint8("k", 255)
+	u := Uint8(255)
 	var got uint8
 	if err := u.MarshalToUint8(&got); err != nil {
 		t.Fatalf("MarshalToUint8 failed: %v", err)
@@ -567,7 +542,7 @@ func TestMarshalToUint8(t *testing.T) {
 func TestMarshalToUint16(t *testing.T) {
 	t.Parallel()
 
-	u := Uint16("k", 65535)
+	u := Uint16(65535)
 	var got uint16
 	if err := u.MarshalToUint16(&got); err != nil {
 		t.Fatalf("MarshalToUint16 failed: %v", err)
@@ -580,7 +555,7 @@ func TestMarshalToUint16(t *testing.T) {
 func TestMarshalToUint32(t *testing.T) {
 	t.Parallel()
 
-	u := Uint32("k", 4294967295)
+	u := Uint32(4294967295)
 	var got uint32
 	if err := u.MarshalToUint32(&got); err != nil {
 		t.Fatalf("MarshalToUint32 failed: %v", err)
@@ -593,7 +568,7 @@ func TestMarshalToUint32(t *testing.T) {
 func TestMarshalToUint64(t *testing.T) {
 	t.Parallel()
 
-	u := Uint64("k", 18446744073709551615)
+	u := Uint64(18446744073709551615)
 	var got uint64
 	if err := u.MarshalToUint64(&got); err != nil {
 		t.Fatalf("MarshalToUint64 failed: %v", err)
@@ -606,7 +581,7 @@ func TestMarshalToUint64(t *testing.T) {
 func TestMarshalToFloat32(t *testing.T) {
 	t.Parallel()
 
-	u := Float32("k", 3.14159)
+	u := Float32(3.14159)
 	var got float32
 	if err := u.MarshalToFloat32(&got); err != nil {
 		t.Fatalf("MarshalToFloat32 failed: %v", err)
@@ -620,7 +595,7 @@ func TestMarshalToFloat32(t *testing.T) {
 func TestMarshalToFloat64(t *testing.T) {
 	t.Parallel()
 
-	u := Float64("k", 2.718281828)
+	u := Float64(2.718281828)
 	var got float64
 	if err := u.MarshalToFloat64(&got); err != nil {
 		t.Fatalf("MarshalToFloat64 failed: %v", err)
@@ -634,7 +609,7 @@ func TestMarshalToError(t *testing.T) {
 	t.Parallel()
 
 	wantErr := errors.New("test error")
-	u := Err("k", wantErr)
+	u := Err(wantErr)
 	var got error
 	if err := u.MarshalToError(&got); err != nil {
 		t.Fatalf("MarshalToError failed: %v", err)
@@ -648,7 +623,7 @@ func TestMarshalToTime(t *testing.T) {
 	t.Parallel()
 
 	want := time.Date(2026, 10, 4, 12, 0, 0, 0, time.UTC)
-	u := Time("k", want)
+	u := Time(want)
 	var got time.Time
 	if err := u.MarshalToTime(&got); err != nil {
 		t.Fatalf("MarshalToTime failed: %v", err)
@@ -664,7 +639,7 @@ func TestMarshalToTime(t *testing.T) {
 
 func TestMismatchStringToInt(t *testing.T) {
 	t.Parallel()
-	u := String("k", "v")
+	u := String("v")
 	var i int
 	if err := u.MarshalToInt(&i); err == nil {
 		t.Error("expected error for String → *int")
@@ -673,7 +648,7 @@ func TestMismatchStringToInt(t *testing.T) {
 
 func TestMismatchStringToInt8(t *testing.T) {
 	t.Parallel()
-	u := String("k", "v")
+	u := String("v")
 	var i int8
 	if err := u.MarshalToInt8(&i); err == nil {
 		t.Error("expected error for String → *int8")
@@ -682,7 +657,7 @@ func TestMismatchStringToInt8(t *testing.T) {
 
 func TestMismatchStringToInt16(t *testing.T) {
 	t.Parallel()
-	u := String("k", "v")
+	u := String("v")
 	var i int16
 	if err := u.MarshalToInt16(&i); err == nil {
 		t.Error("expected error for String → *int16")
@@ -691,7 +666,7 @@ func TestMismatchStringToInt16(t *testing.T) {
 
 func TestMismatchStringToInt32(t *testing.T) {
 	t.Parallel()
-	u := String("k", "v")
+	u := String("v")
 	var i int32
 	if err := u.MarshalToInt32(&i); err == nil {
 		t.Error("expected error for String → *int32")
@@ -700,7 +675,7 @@ func TestMismatchStringToInt32(t *testing.T) {
 
 func TestMismatchStringToInt64(t *testing.T) {
 	t.Parallel()
-	u := String("k", "v")
+	u := String("v")
 	var i int64
 	if err := u.MarshalToInt64(&i); err == nil {
 		t.Error("expected error for String → *int64")
@@ -709,7 +684,7 @@ func TestMismatchStringToInt64(t *testing.T) {
 
 func TestMismatchStringToUint(t *testing.T) {
 	t.Parallel()
-	u := String("k", "v")
+	u := String("v")
 	var u64 uint
 	if err := u.MarshalToUint(&u64); err == nil {
 		t.Error("expected error for String → *uint")
@@ -718,7 +693,7 @@ func TestMismatchStringToUint(t *testing.T) {
 
 func TestMismatchStringToUint8(t *testing.T) {
 	t.Parallel()
-	u := String("k", "v")
+	u := String("v")
 	var u8 uint8
 	if err := u.MarshalToUint8(&u8); err == nil {
 		t.Error("expected error for String → *uint8")
@@ -727,7 +702,7 @@ func TestMismatchStringToUint8(t *testing.T) {
 
 func TestMismatchStringToUint16(t *testing.T) {
 	t.Parallel()
-	u := String("k", "v")
+	u := String("v")
 	var u16 uint16
 	if err := u.MarshalToUint16(&u16); err == nil {
 		t.Error("expected error for String → *uint16")
@@ -736,7 +711,7 @@ func TestMismatchStringToUint16(t *testing.T) {
 
 func TestMismatchStringToUint32(t *testing.T) {
 	t.Parallel()
-	u := String("k", "v")
+	u := String("v")
 	var u32 uint32
 	if err := u.MarshalToUint32(&u32); err == nil {
 		t.Error("expected error for String → *uint32")
@@ -745,7 +720,7 @@ func TestMismatchStringToUint32(t *testing.T) {
 
 func TestMismatchStringToUint64(t *testing.T) {
 	t.Parallel()
-	u := String("k", "v")
+	u := String("v")
 	var u64 uint64
 	if err := u.MarshalToUint64(&u64); err == nil {
 		t.Error("expected error for String → *uint64")
@@ -754,7 +729,7 @@ func TestMismatchStringToUint64(t *testing.T) {
 
 func TestMismatchStringToFloat32(t *testing.T) {
 	t.Parallel()
-	u := String("k", "v")
+	u := String("v")
 	var f float32
 	if err := u.MarshalToFloat32(&f); err == nil {
 		t.Error("expected error for String → *float32")
@@ -763,7 +738,7 @@ func TestMismatchStringToFloat32(t *testing.T) {
 
 func TestMismatchStringToFloat64(t *testing.T) {
 	t.Parallel()
-	u := String("k", "v")
+	u := String("v")
 	var f float64
 	if err := u.MarshalToFloat64(&f); err == nil {
 		t.Error("expected error for String → *float64")
@@ -772,7 +747,7 @@ func TestMismatchStringToFloat64(t *testing.T) {
 
 func TestMismatchStringToError(t *testing.T) {
 	t.Parallel()
-	u := String("k", "v")
+	u := String("v")
 	var e error
 	if err := u.MarshalToError(&e); err == nil {
 		t.Error("expected error for String → *error")
@@ -781,7 +756,7 @@ func TestMismatchStringToError(t *testing.T) {
 
 func TestMismatchStringToTime(t *testing.T) {
 	t.Parallel()
-	u := String("k", "v")
+	u := String("v")
 	var gotTime time.Time
 	if err := u.MarshalToTime(&gotTime); err == nil {
 		t.Error("expected error for String → *time.Time")
@@ -790,7 +765,7 @@ func TestMismatchStringToTime(t *testing.T) {
 
 func TestMismatchIntToString(t *testing.T) {
 	t.Parallel()
-	u := Int("k", 1)
+	u := Int(1)
 	var s string
 	if err := u.MarshalToStr(&s); err == nil {
 		t.Error("expected error for Int → *string")
@@ -799,7 +774,7 @@ func TestMismatchIntToString(t *testing.T) {
 
 func TestMismatchInt8ToInt(t *testing.T) {
 	t.Parallel()
-	u := Int8("k", 1)
+	u := Int8(1)
 	// Int8 shares i64P backing with int — MarshalToInt accepts all signed ints (permissive group matching).
 	var i int
 	if err := u.MarshalToInt(&i); err != nil {
@@ -812,7 +787,7 @@ func TestMismatchInt8ToInt(t *testing.T) {
 
 func TestMismatchIntToInt64(t *testing.T) {
 	t.Parallel()
-	u := Int("k", 1)
+	u := Int(1)
 	// Int shares i64P backing with int64 — MarshalToInt64 accepts all signed ints (permissive group matching).
 	var i int64
 	if err := u.MarshalToInt64(&i); err != nil {
@@ -825,7 +800,7 @@ func TestMismatchIntToInt64(t *testing.T) {
 
 func TestMismatchUintToInt64(t *testing.T) {
 	t.Parallel()
-	u := Uint("k", 1)
+	u := Uint(1)
 	var i int64
 	if err := u.MarshalToInt64(&i); err == nil {
 		t.Error("expected error for Uint → *int64 (signed/unsigned)")
@@ -834,7 +809,7 @@ func TestMismatchUintToInt64(t *testing.T) {
 
 func TestMismatchFloat64ToInt(t *testing.T) {
 	t.Parallel()
-	u := Float64("k", 1.0)
+	u := Float64(1.0)
 	var i int
 	if err := u.MarshalToInt(&i); err == nil {
 		t.Error("expected error for Float64 → *int")
@@ -843,7 +818,7 @@ func TestMismatchFloat64ToInt(t *testing.T) {
 
 func TestMismatchErrorToInt(t *testing.T) {
 	t.Parallel()
-	u := Err("k", errTest)
+	u := Err(errTest)
 	var i int
 	if err := u.MarshalToInt(&i); err == nil {
 		t.Error("expected error for Err → *int")
@@ -852,7 +827,7 @@ func TestMismatchErrorToInt(t *testing.T) {
 
 func TestMismatchTimeToInt(t *testing.T) {
 	t.Parallel()
-	u := Time("k", time.Now())
+	u := Time(time.Now())
 	var i int
 	if err := u.MarshalToInt(&i); err == nil {
 		t.Error("expected error for Time → *int")
@@ -861,7 +836,7 @@ func TestMismatchTimeToInt(t *testing.T) {
 
 func TestMismatchInt64ToUint(t *testing.T) {
 	t.Parallel()
-	u := Int64("k", 42)
+	u := Int64(42)
 	var ui uint64
 	if err := u.MarshalToUint64(&ui); err == nil {
 		t.Error("expected error for Int64 → *uint64")
@@ -870,7 +845,7 @@ func TestMismatchInt64ToUint(t *testing.T) {
 
 func TestMismatchUint64ToInt64(t *testing.T) {
 	t.Parallel()
-	u := Uint64("k", 42)
+	u := Uint64(42)
 	var i int64
 	if err := u.MarshalToInt64(&i); err == nil {
 		t.Error("expected error for Uint64 → *int64")
@@ -879,7 +854,7 @@ func TestMismatchUint64ToInt64(t *testing.T) {
 
 func TestMismatchFloat32ToFloat64DifferentTag(t *testing.T) {
 	t.Parallel()
-	u := Float32("k", 1.5)
+	u := Float32(1.5)
 	// Float32 and Float64 share f64P backing — MarshalToFloat64 accepts all floats (permissive group matching).
 	var f float64
 	if err := u.MarshalToFloat64(&f); err != nil {
@@ -897,7 +872,7 @@ func TestMismatchFloat32ToFloat64DifferentTag(t *testing.T) {
 
 func TestNilDstMarshalToStr(t *testing.T) {
 	t.Parallel()
-	u := String("k", "v")
+	u := String("v")
 	if err := u.MarshalToStr(nil); err == nil {
 		t.Error("expected error for nil dst")
 	}
@@ -905,7 +880,7 @@ func TestNilDstMarshalToStr(t *testing.T) {
 
 func TestNilDstMarshalToInt(t *testing.T) {
 	t.Parallel()
-	u := Int("k", 42)
+	u := Int(42)
 	if err := u.MarshalToInt(nil); err == nil {
 		t.Error("expected error for nil dst")
 	}
@@ -913,7 +888,7 @@ func TestNilDstMarshalToInt(t *testing.T) {
 
 func TestNilDstMarshalToInt8(t *testing.T) {
 	t.Parallel()
-	u := Int8("k", 1)
+	u := Int8(1)
 	if err := u.MarshalToInt8(nil); err == nil {
 		t.Error("expected error for nil dst")
 	}
@@ -921,7 +896,7 @@ func TestNilDstMarshalToInt8(t *testing.T) {
 
 func TestNilDstMarshalToInt16(t *testing.T) {
 	t.Parallel()
-	u := Int16("k", 1)
+	u := Int16(1)
 	if err := u.MarshalToInt16(nil); err == nil {
 		t.Error("expected error for nil dst")
 	}
@@ -929,7 +904,7 @@ func TestNilDstMarshalToInt16(t *testing.T) {
 
 func TestNilDstMarshalToInt32(t *testing.T) {
 	t.Parallel()
-	u := Int32("k", 1)
+	u := Int32(1)
 	if err := u.MarshalToInt32(nil); err == nil {
 		t.Error("expected error for nil dst")
 	}
@@ -937,7 +912,7 @@ func TestNilDstMarshalToInt32(t *testing.T) {
 
 func TestNilDstMarshalToInt64(t *testing.T) {
 	t.Parallel()
-	u := Int64("k", 1)
+	u := Int64(1)
 	if err := u.MarshalToInt64(nil); err == nil {
 		t.Error("expected error for nil dst")
 	}
@@ -945,7 +920,7 @@ func TestNilDstMarshalToInt64(t *testing.T) {
 
 func TestNilDstMarshalToUint(t *testing.T) {
 	t.Parallel()
-	u := Uint("k", 1)
+	u := Uint(1)
 	if err := u.MarshalToUint(nil); err == nil {
 		t.Error("expected error for nil dst")
 	}
@@ -953,7 +928,7 @@ func TestNilDstMarshalToUint(t *testing.T) {
 
 func TestNilDstMarshalToUint8(t *testing.T) {
 	t.Parallel()
-	u := Uint8("k", 1)
+	u := Uint8(1)
 	if err := u.MarshalToUint8(nil); err == nil {
 		t.Error("expected error for nil dst")
 	}
@@ -961,7 +936,7 @@ func TestNilDstMarshalToUint8(t *testing.T) {
 
 func TestNilDstMarshalToUint16(t *testing.T) {
 	t.Parallel()
-	u := Uint16("k", 1)
+	u := Uint16(1)
 	if err := u.MarshalToUint16(nil); err == nil {
 		t.Error("expected error for nil dst")
 	}
@@ -969,7 +944,7 @@ func TestNilDstMarshalToUint16(t *testing.T) {
 
 func TestNilDstMarshalToUint32(t *testing.T) {
 	t.Parallel()
-	u := Uint32("k", 1)
+	u := Uint32(1)
 	if err := u.MarshalToUint32(nil); err == nil {
 		t.Error("expected error for nil dst")
 	}
@@ -977,7 +952,7 @@ func TestNilDstMarshalToUint32(t *testing.T) {
 
 func TestNilDstMarshalToUint64(t *testing.T) {
 	t.Parallel()
-	u := Uint64("k", 1)
+	u := Uint64(1)
 	if err := u.MarshalToUint64(nil); err == nil {
 		t.Error("expected error for nil dst")
 	}
@@ -985,7 +960,7 @@ func TestNilDstMarshalToUint64(t *testing.T) {
 
 func TestNilDstMarshalToFloat32(t *testing.T) {
 	t.Parallel()
-	u := Float32("k", 1.0)
+	u := Float32(1.0)
 	if err := u.MarshalToFloat32(nil); err == nil {
 		t.Error("expected error for nil dst")
 	}
@@ -993,7 +968,7 @@ func TestNilDstMarshalToFloat32(t *testing.T) {
 
 func TestNilDstMarshalToFloat64(t *testing.T) {
 	t.Parallel()
-	u := Float64("k", 1.0)
+	u := Float64(1.0)
 	if err := u.MarshalToFloat64(nil); err == nil {
 		t.Error("expected error for nil dst")
 	}
@@ -1001,7 +976,7 @@ func TestNilDstMarshalToFloat64(t *testing.T) {
 
 func TestNilDstMarshalToError(t *testing.T) {
 	t.Parallel()
-	u := Err("k", errTest)
+	u := Err(errTest)
 	if err := u.MarshalToError(nil); err == nil {
 		t.Error("expected error for nil dst")
 	}
@@ -1009,7 +984,7 @@ func TestNilDstMarshalToError(t *testing.T) {
 
 func TestNilDstMarshalToTime(t *testing.T) {
 	t.Parallel()
-	u := Time("k", time.Now())
+	u := Time(time.Now())
 	if err := u.MarshalToTime(nil); err == nil {
 		t.Error("expected error for nil dst")
 	}
@@ -1021,7 +996,7 @@ func TestNilDstMarshalToTime(t *testing.T) {
 
 func TestEmptyAccessMarshalToStr(t *testing.T) {
 	t.Parallel()
-	u := UnifieldPtr{key: "k"}
+	u := UnifieldPtr{}
 	var s string
 	if err := u.MarshalToStr(&s); err == nil {
 		t.Error("expected error for empty → MarshalToStr")
@@ -1032,7 +1007,7 @@ func TestEmptyAccessMarshalToStr(t *testing.T) {
 
 func TestEmptyAccessMarshalToInt(t *testing.T) {
 	t.Parallel()
-	u := UnifieldPtr{key: "k"}
+	u := UnifieldPtr{}
 	var i int
 	if err := u.MarshalToInt(&i); err == nil {
 		t.Error("expected error for empty → MarshalToInt")
@@ -1041,7 +1016,7 @@ func TestEmptyAccessMarshalToInt(t *testing.T) {
 
 func TestEmptyAccessMarshalToUint64(t *testing.T) {
 	t.Parallel()
-	u := UnifieldPtr{key: "k"}
+	u := UnifieldPtr{}
 	var ui uint64
 	if err := u.MarshalToUint64(&ui); err == nil {
 		t.Error("expected error for empty → MarshalToUint64")
@@ -1050,7 +1025,7 @@ func TestEmptyAccessMarshalToUint64(t *testing.T) {
 
 func TestEmptyAccessMarshalToFloat64(t *testing.T) {
 	t.Parallel()
-	u := UnifieldPtr{key: "k"}
+	u := UnifieldPtr{}
 	var f float64
 	if err := u.MarshalToFloat64(&f); err == nil {
 		t.Error("expected error for empty → MarshalToFloat64")
@@ -1059,7 +1034,7 @@ func TestEmptyAccessMarshalToFloat64(t *testing.T) {
 
 func TestEmptyAccessMarshalToTime(t *testing.T) {
 	t.Parallel()
-	u := UnifieldPtr{key: "k"}
+	u := UnifieldPtr{}
 	var tm time.Time
 	if err := u.MarshalToTime(&tm); err == nil {
 		t.Error("expected error for empty → MarshalToTime")
@@ -1068,7 +1043,7 @@ func TestEmptyAccessMarshalToTime(t *testing.T) {
 
 func TestNilErrorAccessMarshalToError(t *testing.T) {
 	t.Parallel()
-	u := Err("k", nil) // nil error → empty
+	u := Err(nil) // nil error → empty
 	var e error
 	if err := u.MarshalToError(&e); err == nil {
 		t.Error("expected error for nil error → MarshalToError")
@@ -1079,61 +1054,32 @@ func TestNilErrorAccessMarshalToError(t *testing.T) {
 // Additional edge cases
 // ================================================================
 
-func TestKeyPreserved(t *testing.T) {
-	t.Parallel()
-
-	u := String("my-key", "val")
-	if u.key != "my-key" {
-		t.Errorf("key expected 'my-key', got %q", u.key)
-	}
-	c := u.Clone()
-	clonedVal := c.(UnifieldPtr)
-	if clonedVal.key != "my-key" {
-		t.Errorf("clone key expected 'my-key', got %q", clonedVal.key)
-	}
-}
-
 func TestZeroValues(t *testing.T) {
 	t.Parallel()
 
-	_ = String("k", "")
-	_ = Int("k", 0)
-	_ = Int8("k", 0)
-	_ = Int16("k", 0)
-	_ = Int32("k", 0)
-	_ = Int64("k", 0)
-	_ = Uint("k", 0)
-	_ = Uint8("k", 0)
-	_ = Uint16("k", 0)
-	_ = Uint32("k", 0)
-	_ = Uint64("k", 0)
-	_ = Float32("k", 0)
-	_ = Float64("k", 0)
-	_ = Err("k", nil)
-	_ = Time("k", time.Time{})
-}
-
-func TestErrKeyStored(t *testing.T) {
-	t.Parallel()
-
-	u := Err("my-error-key", errTest)
-	if u.key != "my-error-key" {
-		t.Errorf("key = %q, want %q", u.key, "my-error-key")
-	}
-	if !errors.Is(u.errP, errTest) {
-		t.Errorf("errP = %v, want %v", u.errP, errTest)
-	}
+	_ = String("")
+	_ = Int(0)
+	_ = Int8(0)
+	_ = Int16(0)
+	_ = Int32(0)
+	_ = Int64(0)
+	_ = Uint(0)
+	_ = Uint8(0)
+	_ = Uint16(0)
+	_ = Uint32(0)
+	_ = Uint64(0)
+	_ = Float32(0)
+	_ = Float64(0)
+	_ = Err(nil)
+	_ = Time(time.Time{})
 }
 
 func TestTimeKeyAndPointerOnly(t *testing.T) {
 	t.Parallel()
 
 	want := time.Date(2024, 1, 1, 0, 0, 0, 0, time.FixedZone("test", 3600))
-	u := Time("tz-key", want)
+	u := Time(want)
 
-	if u.key != "tz-key" {
-		t.Errorf("key = %q, want %q", u.key, "tz-key")
-	}
 	if u.tmP == nil || !u.tmP.Equal(want) {
 		t.Fatal("tmP does not match expected time")
 	}

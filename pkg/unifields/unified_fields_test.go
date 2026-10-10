@@ -49,7 +49,7 @@ func TestNewUnifields(t *testing.T) {
 
 func TestUnifieldsAddVal(t *testing.T) {
 	u := NewUnifields()
-	f := valpkg.Int("counter", 42)
+	f := valpkg.Int(42)
 	u.Add(f)
 	if u.Len() != 1 {
 		t.Errorf("expected 1 item, got %d", u.Len())
@@ -65,7 +65,7 @@ func TestUnifieldsAddVal(t *testing.T) {
 
 func TestUnifieldsAddPtr(t *testing.T) {
 	u := NewUnifields()
-	f := ptr.String("message", "hello world")
+	f := ptr.String("hello world")
 	u.Add(f)
 	if u.Len() != 1 {
 		t.Errorf("expected 1 item, got %d", u.Len())
@@ -81,9 +81,9 @@ func TestUnifieldsAddPtr(t *testing.T) {
 
 func TestUnifieldsAddMixedTypes(t *testing.T) {
 	u := NewUnifields()
-	u.Add(valpkg.Int("a", 1))
-	u.Add(ptr.String("b", "two"))
-	u.Add(valpkg.Float64("c", 3.0))
+	u.Add(valpkg.Int(1))
+	u.Add(ptr.String("two"))
+	u.Add(valpkg.Float64(3.0))
 	if u.Len() != 3 {
 		t.Errorf("expected 3 items, got %d", u.Len())
 	}
@@ -91,11 +91,11 @@ func TestUnifieldsAddMixedTypes(t *testing.T) {
 
 func TestUnifieldsAddAll(t *testing.T) {
 	u := NewUnifields()
-	u.Add(valpkg.Int("a", 1))
-	u.Add(valpkg.String("b", "two"))
-	u.Add(valpkg.Int64("c", 3))
-	errField := ptr.Err("e", errTest)
-	u.AddAll([]Unifielder{valpkg.Uint("d", 4), errField})
+	u.Add(valpkg.Int(1))
+	u.Add(valpkg.String("two"))
+	u.Add(valpkg.Int64(3))
+	errField := ptr.Err(errTest)
+	u.AddAll([]Unifielder{valpkg.Uint(4), errField})
 	if u.Len() != 5 {
 		t.Errorf("expected 5 items, got %d", u.Len())
 	}
@@ -111,23 +111,6 @@ func TestUnifieldsAddAllNilEmpty(t *testing.T) {
 	u.AddAll([]Unifielder{})
 	if u.Len() != initLen {
 		t.Error("AddAll([]) should be no-op")
-	}
-}
-
-func TestUnifieldsPreservesKeys(t *testing.T) {
-	// Since key is unexported in both val.Unifield and ptr.UnifieldPtr,
-	// verify preservation by adding an item and checking MarshalTo works correctly.
-	u := NewUnifields()
-	keyName := "my_key"
-	expectedKey := keyName
-	f := valpkg.Int64(expectedKey, 123)
-	u.Add(f)
-	var got int64
-	if err := f.MarshalToInt64(&got); err != nil {
-		t.Fatalf("MarshalToInt64 failed: %v", err)
-	}
-	if got != 123 {
-		t.Errorf("expected value 123, got %d", got)
 	}
 }
 

@@ -45,7 +45,7 @@ func BenchmarkNewUnifieldStack(b *testing.B) {
 // BenchmarkPushSingle measures single-element push throughput.
 func BenchmarkPushSingle(b *testing.B) {
 	b.ReportAllocs()
-	fld := String("key", "value")
+	fld := String("value")
 	for range b.N {
 		s := NewUnifieldStack()
 		s.Push(fld)
@@ -58,8 +58,8 @@ func BenchmarkPushLarge(b *testing.B) {
 	for range b.N {
 		s := NewUnifieldStack()
 		s.PushFields(
-			String("a", "alpha"), Int("b", 1), Float64("c", 1.0),
-			String("d", "delta"), Uint("e", 5), Time("f", time.Now()),
+			String("alpha"), Int(1), Float64(1.0),
+			String("delta"), Uint(5), Time(time.Now()),
 		)
 	}
 }
@@ -68,8 +68,8 @@ func BenchmarkPushLarge(b *testing.B) {
 func BenchmarkPushFieldsVariadic(b *testing.B) {
 	b.ReportAllocs()
 	fields := []unifolderv2.Unifielder{
-		String("one", "1"), Int("two", 2), Float64("three", 3.0),
-		Uint("four", 4), String("five", "5"),
+		String("1"), Int(2), Float64(3.0),
+		Uint(4), String("5"),
 	}
 	for range b.N {
 		s := NewUnifieldStack()
@@ -82,7 +82,7 @@ func BenchmarkPopSingle(b *testing.B) {
 	b.ReportAllocs()
 	for range b.N {
 		s := NewUnifieldStack()
-		s.Push(String("x", "val"))
+		s.Push(String("val"))
 		_ = s.Pop()
 	}
 }
@@ -92,7 +92,7 @@ func BenchmarkPopNBatch(b *testing.B) {
 	b.ReportAllocs()
 	for range b.N {
 		s := NewUnifieldStack()
-		s.PushFields(String("a", "1"), Int("b", 2), Float64("c", 3.0))
+		s.PushFields(String("1"), Int(2), Float64(3.0))
 		_ = s.PopN(2)
 	}
 }
@@ -102,7 +102,7 @@ func BenchmarkGetTopPeek(b *testing.B) {
 	b.ReportAllocs()
 	for range b.N {
 		s := NewUnifieldStack()
-		s.Push(Int("n", 100))
+		s.Push(Int(100))
 		_ = s.GetTop()
 	}
 }
@@ -112,7 +112,7 @@ func BenchmarkClearThroughput(b *testing.B) {
 	b.ReportAllocs()
 	for range b.N {
 		s := NewUnifieldStack()
-		s.PushFields(String("a", "1"), Int("b", 2), Float64("c", 3.0))
+		s.PushFields(String("1"), Int(2), Float64(3.0))
 		s.Clear()
 	}
 }
@@ -123,8 +123,8 @@ func BenchmarkLenAccess(b *testing.B) {
 	for range b.N {
 		s := NewUnifieldStack()
 		s.PushFields(
-			String("a", "1"), Int("b", 2), Float64("c", 3.0),
-			Uint("d", 4), Err("e", ErrTypeMismatch),
+			String("1"), Int(2), Float64(3.0),
+			Uint(4), Err(ErrTypeMismatch),
 		)
 		_ = s.Len()
 	}
@@ -136,7 +136,7 @@ func BenchmarkPopN_Large(b *testing.B) {
 	for range b.N {
 		s := NewUnifieldStack()
 		for j := range 1000 {
-			s.Push(Int("k", j))
+			s.Push(Int(j))
 		}
 		_ = s.PopN(500)
 	}

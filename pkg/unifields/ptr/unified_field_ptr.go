@@ -114,7 +114,7 @@ var (
 	ErrEmptyUnifield = errors.New("unifield is empty")
 )
 
-// UnifieldPtr holds exactly one typed value via pointer, paired with a key identifier.
+// UnifieldPtr holds exactly one typed value via pointer.
 //
 // All internal pointer fields start nil; only one is non-nil after construction,
 // as indicated by the type_ discriminator tag. The errP field stores error directly
@@ -125,12 +125,9 @@ var (
 // before storing the pointer. Callers can safely mutate their original values after
 // passing them to a factory — the UnifieldPtr retains its own independent copy.
 //
-// Field layout: key + error interface consume 32 bytes minimum; five pointers follow
-// in natural order. Due to alignment constraints with string header (16B) and error
-// interface (16B), the struct totals 80 bytes — optimized as much as possible given
-// Go's memory model requirements.
-type UnifieldPtr struct { //nolint:govet // alignment constrained by string+error+5*pointer types
-	key   string     // identifier key for the field
+// Field layout: error interface + five pointers follow in natural order. Due to
+// alignment constraints with error interface (16B), the struct totals ~80 bytes.
+type UnifieldPtr struct { //nolint:govet // alignment constrained by error+5*pointer types
 	errP  error      // error value stored directly (error is already an interface)
 	i64P  *int64     // pointer to signed int value (nil if not set)
 	u64P  *uint64    // pointer to unsigned int value (nil if not set)
@@ -429,154 +426,154 @@ func (u UnifieldPtr) MarshalToTime(dst *time.Time) error {
 
 // --- Factory functions ---
 
-// String creates a new UnifieldPtr with key and string value.
+// String creates a new UnifieldPtr with string value.
 //
 // It allocates a heap copy of val so that mutating the original value after this
 // call does not affect the stored value. Only one pointer field (strP) will be
 // non-nil in the returned UnifieldPtr.
-func String(key string, val string) UnifieldPtr {
+func String(val string) UnifieldPtr {
 	v := val
-	return UnifieldPtr{key: key, strP: &v, type_: valueString}
+	return UnifieldPtr{strP: &v, type_: valueString}
 }
 
-// Int creates a new UnifieldPtr with key and int value.
+// Int creates a new UnifieldPtr with int value.
 //
 // It allocates a heap copy of val (stored as int64) so that mutating the original
 // value after this call does not affect the stored value. Only one pointer field
 // (i64P) will be non-nil in the returned UnifieldPtr.
-func Int(key string, val int) UnifieldPtr {
+func Int(val int) UnifieldPtr {
 	v := int64(val)
-	return UnifieldPtr{key: key, i64P: &v, type_: valueInt}
+	return UnifieldPtr{i64P: &v, type_: valueInt}
 }
 
-// Int8 creates a new UnifieldPtr with key and int8 value.
+// Int8 creates a new UnifieldPtr with int8 value.
 //
 // It allocates a heap copy of val (stored as int64) so that mutating the original
 // value after this call does not affect the stored value. Only one pointer field
 // (i64P) will be non-nil in the returned UnifieldPtr.
-func Int8(key string, val int8) UnifieldPtr {
+func Int8(val int8) UnifieldPtr {
 	v := int64(val)
-	return UnifieldPtr{key: key, i64P: &v, type_: valueInt8}
+	return UnifieldPtr{i64P: &v, type_: valueInt8}
 }
 
-// Int16 creates a new UnifieldPtr with key and int16 value.
+// Int16 creates a new UnifieldPtr with int16 value.
 //
 // It allocates a heap copy of val (stored as int64) so that mutating the original
 // value after this call does not affect the stored value. Only one pointer field
 // (i64P) will be non-nil in the returned UnifieldPtr.
-func Int16(key string, val int16) UnifieldPtr {
+func Int16(val int16) UnifieldPtr {
 	v := int64(val)
-	return UnifieldPtr{key: key, i64P: &v, type_: valueInt16}
+	return UnifieldPtr{i64P: &v, type_: valueInt16}
 }
 
-// Int32 creates a new UnifieldPtr with key and int32 value.
+// Int32 creates a new UnifieldPtr with int32 value.
 //
 // It allocates a heap copy of val (stored as int64) so that mutating the original
 // value after this call does not affect the stored value. Only one pointer field
 // (i64P) will be non-nil in the returned UnifieldPtr.
-func Int32(key string, val int32) UnifieldPtr {
+func Int32(val int32) UnifieldPtr {
 	v := int64(val)
-	return UnifieldPtr{key: key, i64P: &v, type_: valueInt32}
+	return UnifieldPtr{i64P: &v, type_: valueInt32}
 }
 
-// Int64 creates a new UnifieldPtr with key and int64 value.
+// Int64 creates a new UnifieldPtr with int64 value.
 //
 // It allocates a heap copy of val so that mutating the original value after this
 // call does not affect the stored value. Only one pointer field (i64P) will be
 // non-nil in the returned UnifieldPtr.
-func Int64(key string, val int64) UnifieldPtr {
+func Int64(val int64) UnifieldPtr {
 	v := val
-	return UnifieldPtr{key: key, i64P: &v, type_: valueInt64}
+	return UnifieldPtr{i64P: &v, type_: valueInt64}
 }
 
-// Uint creates a new UnifieldPtr with key and uint value.
+// Uint creates a new UnifieldPtr with uint value.
 //
 // It allocates a heap copy of val (stored as uint64) so that mutating the original
 // value after this call does not affect the stored value. Only one pointer field
 // (u64P) will be non-nil in the returned UnifieldPtr.
-func Uint(key string, val uint) UnifieldPtr {
+func Uint(val uint) UnifieldPtr {
 	v := uint64(val)
-	return UnifieldPtr{key: key, u64P: &v, type_: valueUint}
+	return UnifieldPtr{u64P: &v, type_: valueUint}
 }
 
-// Uint8 creates a new UnifieldPtr with key and uint8 value.
+// Uint8 creates a new UnifieldPtr with uint8 value.
 //
 // It allocates a heap copy of val (stored as uint64) so that mutating the original
 // value after this call does not affect the stored value. Only one pointer field
 // (u64P) will be non-nil in the returned UnifieldPtr.
-func Uint8(key string, val uint8) UnifieldPtr {
+func Uint8(val uint8) UnifieldPtr {
 	v := uint64(val)
-	return UnifieldPtr{key: key, u64P: &v, type_: valueUint8}
+	return UnifieldPtr{u64P: &v, type_: valueUint8}
 }
 
-// Uint16 creates a new UnifieldPtr with key and uint16 value.
+// Uint16 creates a new UnifieldPtr with uint16 value.
 //
 // It allocates a heap copy of val (stored as uint64) so that mutating the original
 // value after this call does not affect the stored value. Only one pointer field
 // (u64P) will be non-nil in the returned UnifieldPtr.
-func Uint16(key string, val uint16) UnifieldPtr {
+func Uint16(val uint16) UnifieldPtr {
 	v := uint64(val)
-	return UnifieldPtr{key: key, u64P: &v, type_: valueUint16}
+	return UnifieldPtr{u64P: &v, type_: valueUint16}
 }
 
-// Uint32 creates a new UnifieldPtr with key and uint32 value.
+// Uint32 creates a new UnifieldPtr with uint32 value.
 //
 // It allocates a heap copy of val (stored as uint64) so that mutating the original
 // value after this call does not affect the stored value. Only one pointer field
 // (u64P) will be non-nil in the returned UnifieldPtr.
-func Uint32(key string, val uint32) UnifieldPtr {
+func Uint32(val uint32) UnifieldPtr {
 	v := uint64(val)
-	return UnifieldPtr{key: key, u64P: &v, type_: valueUint32}
+	return UnifieldPtr{u64P: &v, type_: valueUint32}
 }
 
-// Uint64 creates a new UnifieldPtr with key and uint64 value.
+// Uint64 creates a new UnifieldPtr with uint64 value.
 //
 // It allocates a heap copy of val so that mutating the original value after this
 // call does not affect the stored value. Only one pointer field (u64P) will be
 // non-nil in the returned UnifieldPtr.
-func Uint64(key string, val uint64) UnifieldPtr {
+func Uint64(val uint64) UnifieldPtr {
 	v := val
-	return UnifieldPtr{key: key, u64P: &v, type_: valueUint64}
+	return UnifieldPtr{u64P: &v, type_: valueUint64}
 }
 
-// Float32 creates a new UnifieldPtr with key and float32 value.
+// Float32 creates a new UnifieldPtr with float32 value.
 //
 // It allocates a heap copy of val (stored as float64) so that mutating the original
 // value after this call does not affect the stored value. Only one pointer field
 // (f64P) will be non-nil in the returned UnifieldPtr.
-func Float32(key string, val float32) UnifieldPtr {
+func Float32(val float32) UnifieldPtr {
 	v := float64(val)
-	return UnifieldPtr{key: key, f64P: &v, type_: valueFloat32}
+	return UnifieldPtr{f64P: &v, type_: valueFloat32}
 }
 
-// Float64 creates a new UnifieldPtr with key and float64 value.
+// Float64 creates a new UnifieldPtr with float64 value.
 //
 // It allocates a heap copy of val so that mutating the original value after this
 // call does not affect the stored value. Only one pointer field (f64P) will be
 // non-nil in the returned UnifieldPtr.
-func Float64(key string, val float64) UnifieldPtr {
+func Float64(val float64) UnifieldPtr {
 	v := val
-	return UnifieldPtr{key: key, f64P: &v, type_: valueFloat64}
+	return UnifieldPtr{f64P: &v, type_: valueFloat64}
 }
 
-// Err creates a new UnifieldPtr with key and error value.
+// Err creates a new UnifieldPtr with error value.
 //
 // Stores the error interface directly — since error is already an interface, no
 // pointer indirection is needed. Passing nil as val produces an empty UnifieldPtr
 // with valueEmpty (MarshalToError will return ErrEmptyUnifield).
-func Err(key string, val error) UnifieldPtr {
+func Err(val error) UnifieldPtr {
 	if val == nil {
-		return UnifieldPtr{key: key, type_: valueEmpty}
+		return UnifieldPtr{type_: valueEmpty}
 	}
-	return UnifieldPtr{key: key, errP: val, type_: valueError}
+	return UnifieldPtr{errP: val, type_: valueError}
 }
 
-// Time creates a new UnifieldPtr with key and time.Time value.
+// Time creates a new UnifieldPtr with time.Time value.
 //
 // It allocates a heap copy of val so that mutating the original time.Time after
 // this call does not affect the stored value. Only one pointer field (tmP) will be
 // non-nil in the returned UnifieldPtr.
-func Time(key string, val time.Time) UnifieldPtr {
+func Time(val time.Time) UnifieldPtr {
 	v := val
-	return UnifieldPtr{key: key, tmP: &v, type_: valueTime}
+	return UnifieldPtr{tmP: &v, type_: valueTime}
 }

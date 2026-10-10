@@ -36,10 +36,7 @@ import (
 var errTest = errors.New("test error value")
 
 func TestString(t *testing.T) {
-	f := String("key", "val")
-	if f.key != "key" {
-		t.Errorf("expected key=key, got %s", f.key)
-	}
+	f := String("val")
 	if f.type_ != valueString {
 		t.Errorf("expected valueType valueString, got %v", f.type_)
 	}
@@ -50,7 +47,7 @@ func TestString(t *testing.T) {
 	if s != "val" {
 		t.Errorf("expected val=val, got %s", s)
 	}
-	fz := String("k", "")
+	fz := String("")
 	var sz string
 	if err := fz.MarshalToStr(&sz); err != nil {
 		t.Fatalf("MarshalToStr(\"\") failed: %v", err)
@@ -61,7 +58,7 @@ func TestString(t *testing.T) {
 }
 
 func TestIntBasic(t *testing.T) {
-	f := Int("k", 42)
+	f := Int(42)
 	if f.type_ != valueInt {
 		t.Errorf("type_=want valueInt, got %v", f.type_)
 	}
@@ -75,7 +72,7 @@ func TestIntBasic(t *testing.T) {
 }
 
 func TestInt8(t *testing.T) {
-	f := Int8("k", 42)
+	f := Int8(42)
 	if f.type_ != valueInt8 {
 		t.Errorf("type_=want valueInt8, got %v", f.type_)
 	}
@@ -89,7 +86,7 @@ func TestInt8(t *testing.T) {
 }
 
 func TestInt16(t *testing.T) {
-	f := Int16("k", 12345)
+	f := Int16(12345)
 	if f.type_ != valueInt16 {
 		t.Errorf("type_=want valueInt16, got %v", f.type_)
 	}
@@ -103,7 +100,7 @@ func TestInt16(t *testing.T) {
 }
 
 func TestInt32(t *testing.T) {
-	f := Int32("k", 123456789)
+	f := Int32(123456789)
 	if f.type_ != valueInt32 {
 		t.Errorf("type_=want valueInt32, got %v", f.type_)
 	}
@@ -117,7 +114,7 @@ func TestInt32(t *testing.T) {
 }
 
 func TestInt64(t *testing.T) {
-	f := Int64("k", 9223372036854775807)
+	f := Int64(9223372036854775807)
 	if f.type_ != valueInt64 {
 		t.Errorf("type_=want valueInt64, got %v", f.type_)
 	}
@@ -131,7 +128,7 @@ func TestInt64(t *testing.T) {
 }
 
 func TestUint(t *testing.T) {
-	f := Uint("k", 42)
+	f := Uint(42)
 	if f.type_ != valueUint {
 		t.Errorf("type_=want valueUint, got %v", f.type_)
 	}
@@ -145,7 +142,7 @@ func TestUint(t *testing.T) {
 }
 
 func TestUint8(t *testing.T) {
-	f := Uint8("k", 42)
+	f := Uint8(42)
 	if f.type_ != valueUint8 {
 		t.Errorf("type_=want valueUint8, got %v", f.type_)
 	}
@@ -159,7 +156,7 @@ func TestUint8(t *testing.T) {
 }
 
 func TestUint16(t *testing.T) {
-	f := Uint16("k", 42)
+	f := Uint16(42)
 	if f.type_ != valueUint16 {
 		t.Errorf("type_=want valueUint16, got %v", f.type_)
 	}
@@ -173,7 +170,7 @@ func TestUint16(t *testing.T) {
 }
 
 func TestUint32(t *testing.T) {
-	f := Uint32("k", 42)
+	f := Uint32(42)
 	if f.type_ != valueUint32 {
 		t.Errorf("type_=want valueUint32, got %v", f.type_)
 	}
@@ -187,7 +184,7 @@ func TestUint32(t *testing.T) {
 }
 
 func TestUint64(t *testing.T) {
-	f := Uint64("k", 18446744073709551615)
+	f := Uint64(18446744073709551615)
 	if f.type_ != valueUint64 {
 		t.Errorf("type_=want valueUint64, got %v", f.type_)
 	}
@@ -201,7 +198,7 @@ func TestUint64(t *testing.T) {
 }
 
 func TestFloat32(t *testing.T) {
-	f := Float32("k", 3.14)
+	f := Float32(3.14)
 	if f.type_ != valueFloat32 {
 		t.Errorf("type_=want valueFloat32, got %v", f.type_)
 	}
@@ -216,7 +213,7 @@ func TestFloat32(t *testing.T) {
 }
 
 func TestFloat64(t *testing.T) {
-	f := Float64("k", 2.718)
+	f := Float64(2.718)
 	if f.type_ != valueFloat64 {
 		t.Errorf("type_=want valueFloat64, got %v", f.type_)
 	}
@@ -230,7 +227,7 @@ func TestFloat64(t *testing.T) {
 }
 
 func TestErrField(t *testing.T) {
-	f := Err("k", errTest)
+	f := Err(errTest)
 	if f.type_ != valueError {
 		t.Errorf("type_=want valueError, got %v", f.type_)
 	}
@@ -245,7 +242,7 @@ func TestErrField(t *testing.T) {
 
 func TestTimeField(t *testing.T) {
 	now := time.Date(2026, 10, 4, 12, 0, 0, 0, time.UTC)
-	f := Time("k", now)
+	f := Time(now)
 	if f.type_ != valueTime {
 		t.Errorf("type_=want valueTime, got %v", f.type_)
 	}
@@ -259,10 +256,10 @@ func TestTimeField(t *testing.T) {
 }
 
 func TestClone(t *testing.T) {
-	f := Int("key", 99)
+	f := Int(99)
 	c := f.Clone()
 	clonedVal := c.(Unifield)
-	if clonedVal.key != f.key || clonedVal.i64 != f.i64 || clonedVal.type_ != f.type_ {
+	if clonedVal.i64 != f.i64 || clonedVal.type_ != f.type_ {
 		t.Error("clone fields mismatch")
 	}
 }
@@ -270,30 +267,30 @@ func TestClone(t *testing.T) {
 // --- MarshalTo negative tests ---
 
 func TestMarshalToTypeMismatch(t *testing.T) {
-	strF := String("k", "v")
+	strF := String("v")
 	var i int
 	if err := strF.MarshalToInt(&i); err == nil {
 		t.Error("expected error for String -> *int")
 	}
 
-	floatF := Float64("k", 1.0)
+	floatF := Float64(1.0)
 	if err := floatF.MarshalToInt(&i); err == nil {
 		t.Error("expected error for Float64 -> *int")
 	}
 
-	errF := Err("k", errTest)
+	errF := Err(errTest)
 	if err := errF.MarshalToInt(&i); err == nil {
 		t.Error("expected error for Err -> *int")
 	}
 
-	timeF := Time("k", time.Now())
+	timeF := Time(time.Now())
 	if err := timeF.MarshalToInt(&i); err == nil {
 		t.Error("expected error for Time -> *int")
 	}
 }
 
 func TestMarshalToWrongSignedTarget(t *testing.T) {
-	intF := Int64("k", 42)
+	intF := Int64(42)
 	var u uint
 	if err := intF.MarshalToUint(&u); err == nil {
 		t.Error("expected error for Int64 -> *uint")
@@ -301,7 +298,7 @@ func TestMarshalToWrongSignedTarget(t *testing.T) {
 }
 
 func TestMarshalToWrongUnsignedTarget(t *testing.T) {
-	uintF := Uint64("k", 42)
+	uintF := Uint64(42)
 	var i int64
 	if err := uintF.MarshalToInt64(&i); err == nil {
 		t.Error("expected error for Uint64 -> *int64")
@@ -309,97 +306,85 @@ func TestMarshalToWrongUnsignedTarget(t *testing.T) {
 }
 
 func TestMarshalStrNilDst(t *testing.T) {
-	f := String("k", "v")
+	f := String("v")
 	if err := f.MarshalToStr(nil); err == nil {
 		t.Error("expected error for nil dst")
 	}
 }
 
 func TestMarshalIntNilDst(t *testing.T) {
-	f := Int64("k", 42)
+	f := Int64(42)
 	if err := f.MarshalToInt(nil); err == nil {
 		t.Error("expected error for nil dst")
 	}
 }
 
 func TestMarshalInt64NilDst(t *testing.T) {
-	f := Int64("k", 42)
+	f := Int64(42)
 	if err := f.MarshalToInt64(nil); err == nil {
 		t.Error("expected error for nil dst")
 	}
 }
 
 func TestMarshalToUintNilDst(t *testing.T) {
-	f := Uint64("k", 42)
+	f := Uint64(42)
 	if err := f.MarshalToUint(nil); err == nil {
 		t.Error("expected error for nil dst")
 	}
 }
 
 func TestMarshalToUint64NilDst(t *testing.T) {
-	f := Uint64("k", 42)
+	f := Uint64(42)
 	if err := f.MarshalToUint64(nil); err == nil {
 		t.Error("expected error for nil dst")
 	}
 }
 
 func TestMarshalToFloat32NilDst(t *testing.T) {
-	f := Float32("k", 3.14)
+	f := Float32(3.14)
 	if err := f.MarshalToFloat32(nil); err == nil {
 		t.Error("expected error for nil dst")
 	}
 }
 
 func TestMarshalToFloat64NilDst(t *testing.T) {
-	f := Float64("k", 3.14)
+	f := Float64(3.14)
 	if err := f.MarshalToFloat64(nil); err == nil {
 		t.Error("expected error for nil dst")
 	}
 }
 
 func TestMarshalToErrorNilDst(t *testing.T) {
-	f := Err("k", errTest)
+	f := Err(errTest)
 	if err := f.MarshalToError(nil); err == nil {
 		t.Error("expected error for nil dst")
 	}
 }
 
 func TestMarshalToTimeNilDst(t *testing.T) {
-	f := Time("k", time.Now())
+	f := Time(time.Now())
 	if err := f.MarshalToTime(nil); err == nil {
 		t.Error("expected error for nil dst")
 	}
 }
 
-func TestKeyPreserved(t *testing.T) {
-	f := String("my-key", "val")
-	if f.key != "my-key" {
-		t.Errorf("key expected 'my-key', got %q", f.key)
-	}
-	c := f.Clone()
-	clonedVal := c.(Unifield)
-	if clonedVal.key != "my-key" {
-		t.Errorf("clone key expected 'my-key', got %q", clonedVal.key)
-	}
-}
-
 func TestZeroValues(t *testing.T) {
 	var _ Unifield
-	_ = String("k", "")
-	_ = Int("k", 0)
-	_ = Int8("k", 0)
-	_ = Int16("k", 0)
-	_ = Int32("k", 0)
-	_ = Int64("k", 0)
-	_ = Uint("k", 0)
-	_ = Uint8("k", 0)
-	_ = Uint16("k", 0)
-	_ = Uint32("k", 0)
-	_ = Uint64("k", 0)
-	_ = Float32("k", 0)
-	_ = Float64("k", 0)
-	_ = Err("k", nil)
-	_ = Time("k", time.Time{})
+	_ = String("")
+	_ = Int(0)
+	_ = Int8(0)
+	_ = Int16(0)
+	_ = Int32(0)
+	_ = Int64(0)
+	_ = Uint(0)
+	_ = Uint8(0)
+	_ = Uint16(0)
+	_ = Uint32(0)
+	_ = Uint64(0)
+	_ = Float32(0)
+	_ = Float64(0)
+	_ = Err(nil)
+	_ = Time(time.Time{})
 }
 
 func absFloat(x float64) float64 {

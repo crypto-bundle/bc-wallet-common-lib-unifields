@@ -43,98 +43,98 @@ var errBenchmark = errors.New("benchmark error")
 func BenchmarkString(b *testing.B) {
 	b.ReportAllocs()
 	for range b.N {
-		_ = String("key", "value")
+		_ = String("value")
 	}
 }
 
 func BenchmarkInt(b *testing.B) {
 	b.ReportAllocs()
 	for range b.N {
-		_ = Int("key", 42)
+		_ = Int(42)
 	}
 }
 
 func BenchmarkInt8(b *testing.B) {
 	b.ReportAllocs()
 	for range b.N {
-		_ = Int8("key", 127)
+		_ = Int8(127)
 	}
 }
 
 func BenchmarkInt16(b *testing.B) {
 	b.ReportAllocs()
 	for range b.N {
-		_ = Int16("key", 32767)
+		_ = Int16(32767)
 	}
 }
 
 func BenchmarkInt32(b *testing.B) {
 	b.ReportAllocs()
 	for range b.N {
-		_ = Int32("key", 999999999)
+		_ = Int32(999999999)
 	}
 }
 
 func BenchmarkInt64(b *testing.B) {
 	b.ReportAllocs()
 	for range b.N {
-		_ = Int64("key", 9223372036854775807)
+		_ = Int64(9223372036854775807)
 	}
 }
 
 func BenchmarkUint(b *testing.B) {
 	b.ReportAllocs()
 	for range b.N {
-		_ = Uint("key", 12345)
+		_ = Uint(12345)
 	}
 }
 
 func BenchmarkUint8(b *testing.B) {
 	b.ReportAllocs()
 	for range b.N {
-		_ = Uint8("key", 255)
+		_ = Uint8(255)
 	}
 }
 
 func BenchmarkUint16(b *testing.B) {
 	b.ReportAllocs()
 	for range b.N {
-		_ = Uint16("key", 65535)
+		_ = Uint16(65535)
 	}
 }
 
 func BenchmarkUint32(b *testing.B) {
 	b.ReportAllocs()
 	for range b.N {
-		_ = Uint32("key", 4294967295)
+		_ = Uint32(4294967295)
 	}
 }
 
 func BenchmarkUint64(b *testing.B) {
 	b.ReportAllocs()
 	for range b.N {
-		_ = Uint64("key", 18446744073709551615)
+		_ = Uint64(18446744073709551615)
 	}
 }
 
 func BenchmarkFloat32(b *testing.B) {
 	b.ReportAllocs()
 	for range b.N {
-		_ = Float32("key", 3.14159)
+		_ = Float32(3.14159)
 	}
 }
 
 func BenchmarkFloat64(b *testing.B) {
 	b.ReportAllocs()
 	for range b.N {
-		_ = Float64("key", 2.718281828)
+		_ = Float64(2.718281828)
 	}
 }
 
 func BenchmarkErr(b *testing.B) {
 	b.ReportAllocs()
 	for range b.N {
-		_ = Err("key", errBenchmark)
+		_ = Err(errBenchmark)
 	}
 }
 
@@ -142,14 +142,14 @@ func BenchmarkTime(b *testing.B) {
 	t := time.Date(2025, 6, 15, 10, 30, 45, 123456789, time.UTC)
 	b.ReportAllocs()
 	for range b.N {
-		_ = Time("key", t)
+		_ = Time(t)
 	}
 }
 
 // ===== BenchmarkClone* — benchmark Clone method =====
 
 func BenchmarkCloneString(b *testing.B) {
-	u := String("key", "value")
+	u := String("value")
 	b.ReportAllocs()
 	for range b.N {
 		_ = u.Clone()
@@ -157,7 +157,7 @@ func BenchmarkCloneString(b *testing.B) {
 }
 
 func BenchmarkCloneInt(b *testing.B) {
-	u := Int("key", 42)
+	u := Int(42)
 	b.ReportAllocs()
 	for range b.N {
 		_ = u.Clone()
@@ -165,7 +165,7 @@ func BenchmarkCloneInt(b *testing.B) {
 }
 
 func BenchmarkCloneFloat64(b *testing.B) {
-	u := Float64("key", 2.718)
+	u := Float64(2.718)
 	b.ReportAllocs()
 	for range b.N {
 		_ = u.Clone()
@@ -174,7 +174,7 @@ func BenchmarkCloneFloat64(b *testing.B) {
 
 func BenchmarkCloneTime(b *testing.B) {
 	t := time.Date(2025, 6, 15, 10, 30, 45, 0, time.UTC)
-	u := Time("key", t)
+	u := Time(t)
 	b.ReportAllocs()
 	for range b.N {
 		_ = u.Clone()
@@ -184,7 +184,7 @@ func BenchmarkCloneTime(b *testing.B) {
 // ===== BenchmarkMarshalTo* — benchmark MarshalTo methods =====
 
 func BenchmarkMarshalToStr(b *testing.B) {
-	u := String("key", "value")
+	u := String("value")
 	var s string
 	b.ReportAllocs()
 	for range b.N {
@@ -193,7 +193,7 @@ func BenchmarkMarshalToStr(b *testing.B) {
 }
 
 func BenchmarkMarshalToInt(b *testing.B) {
-	u := Int("key", 42)
+	u := Int(42)
 	var i int
 	b.ReportAllocs()
 	for range b.N {
@@ -202,7 +202,7 @@ func BenchmarkMarshalToInt(b *testing.B) {
 }
 
 func BenchmarkMarshalToInt8(b *testing.B) {
-	u := Int8("key", 127)
+	u := Int8(127)
 	var i int8
 	b.ReportAllocs()
 	for range b.N {
@@ -211,7 +211,7 @@ func BenchmarkMarshalToInt8(b *testing.B) {
 }
 
 func BenchmarkMarshalToInt16(b *testing.B) {
-	u := Int16("key", 32767)
+	u := Int16(32767)
 	var i int16
 	b.ReportAllocs()
 	for range b.N {
@@ -220,7 +220,7 @@ func BenchmarkMarshalToInt16(b *testing.B) {
 }
 
 func BenchmarkMarshalToInt32(b *testing.B) {
-	u := Int32("key", 999999999)
+	u := Int32(999999999)
 	var i int32
 	b.ReportAllocs()
 	for range b.N {
@@ -229,7 +229,7 @@ func BenchmarkMarshalToInt32(b *testing.B) {
 }
 
 func BenchmarkMarshalToInt64(b *testing.B) {
-	u := Int64("key", 9223372036854775807)
+	u := Int64(9223372036854775807)
 	var i int64
 	b.ReportAllocs()
 	for range b.N {
@@ -238,7 +238,7 @@ func BenchmarkMarshalToInt64(b *testing.B) {
 }
 
 func BenchmarkMarshalToUint(b *testing.B) {
-	u := Uint("key", 12345)
+	u := Uint(12345)
 	var ui uint
 	b.ReportAllocs()
 	for range b.N {
@@ -247,7 +247,7 @@ func BenchmarkMarshalToUint(b *testing.B) {
 }
 
 func BenchmarkMarshalToUint8(b *testing.B) {
-	u := Uint8("key", 255)
+	u := Uint8(255)
 	var ui uint8
 	b.ReportAllocs()
 	for range b.N {
@@ -256,7 +256,7 @@ func BenchmarkMarshalToUint8(b *testing.B) {
 }
 
 func BenchmarkMarshalToUint16(b *testing.B) {
-	u := Uint16("key", 65535)
+	u := Uint16(65535)
 	var ui uint16
 	b.ReportAllocs()
 	for range b.N {
@@ -265,7 +265,7 @@ func BenchmarkMarshalToUint16(b *testing.B) {
 }
 
 func BenchmarkMarshalToUint32(b *testing.B) {
-	u := Uint32("key", 4294967295)
+	u := Uint32(4294967295)
 	var ui uint32
 	b.ReportAllocs()
 	for range b.N {
@@ -274,7 +274,7 @@ func BenchmarkMarshalToUint32(b *testing.B) {
 }
 
 func BenchmarkMarshalToUint64(b *testing.B) {
-	u := Uint64("key", 18446744073709551615)
+	u := Uint64(18446744073709551615)
 	var ui uint64
 	b.ReportAllocs()
 	for range b.N {
@@ -283,7 +283,7 @@ func BenchmarkMarshalToUint64(b *testing.B) {
 }
 
 func BenchmarkMarshalToFloat32(b *testing.B) {
-	u := Float32("key", 3.14159)
+	u := Float32(3.14159)
 	var f float32
 	b.ReportAllocs()
 	for range b.N {
@@ -292,7 +292,7 @@ func BenchmarkMarshalToFloat32(b *testing.B) {
 }
 
 func BenchmarkMarshalToFloat64(b *testing.B) {
-	u := Float64("key", 2.718281828)
+	u := Float64(2.718281828)
 	var f float64
 	b.ReportAllocs()
 	for range b.N {
@@ -301,7 +301,7 @@ func BenchmarkMarshalToFloat64(b *testing.B) {
 }
 
 func BenchmarkMarshalToError(b *testing.B) {
-	u := Err("key", errBenchmark)
+	u := Err(errBenchmark)
 	var e error
 	b.ReportAllocs()
 	for range b.N {
@@ -311,7 +311,7 @@ func BenchmarkMarshalToError(b *testing.B) {
 
 func BenchmarkMarshalToTime(b *testing.B) {
 	t := time.Date(2025, 6, 15, 10, 30, 45, 123456789, time.UTC)
-	u := Time("key", t)
+	u := Time(t)
 	var tm time.Time
 	b.ReportAllocs()
 	for range b.N {
@@ -325,7 +325,7 @@ func BenchmarkCollectionAddVal_String(b *testing.B) {
 	coll := NewBenchmarkCollection()
 	b.ReportAllocs()
 	for range b.N {
-		coll.Add(String("key", "value"))
+		coll.Add(String("value"))
 	}
 }
 
@@ -333,7 +333,7 @@ func BenchmarkCollectionAddPtr_String(b *testing.B) {
 	coll := NewBenchmarkCollection()
 	b.ReportAllocs()
 	for range b.N {
-		coll.Add(ptr.String("key", "value"))
+		coll.Add(ptr.String("value"))
 	}
 }
 
@@ -341,7 +341,7 @@ func BenchmarkCollectionAddVal_Int(b *testing.B) {
 	coll := NewBenchmarkCollection()
 	b.ReportAllocs()
 	for range b.N {
-		coll.Add(Int("key", 42))
+		coll.Add(Int(42))
 	}
 }
 
@@ -349,7 +349,7 @@ func BenchmarkCollectionAddPtr_Int(b *testing.B) {
 	coll := NewBenchmarkCollection()
 	b.ReportAllocs()
 	for range b.N {
-		coll.Add(ptr.Int("key", 42))
+		coll.Add(ptr.Int(42))
 	}
 }
 
@@ -357,7 +357,7 @@ func BenchmarkCollectionAddVal_Float64(b *testing.B) {
 	coll := NewBenchmarkCollection()
 	b.ReportAllocs()
 	for range b.N {
-		coll.Add(Float64("key", 2.718))
+		coll.Add(Float64(2.718))
 	}
 }
 
@@ -365,7 +365,7 @@ func BenchmarkCollectionAddPtr_Float64(b *testing.B) {
 	coll := NewBenchmarkCollection()
 	b.ReportAllocs()
 	for range b.N {
-		coll.Add(ptr.Float64("key", 2.718))
+		coll.Add(ptr.Float64(2.718))
 	}
 }
 
@@ -374,7 +374,7 @@ func BenchmarkCollectionAddVal_Time(b *testing.B) {
 	coll := NewBenchmarkCollection()
 	b.ReportAllocs()
 	for range b.N {
-		coll.Add(Time("key", t))
+		coll.Add(Time(t))
 	}
 }
 
@@ -383,7 +383,7 @@ func BenchmarkCollectionAddPtr_Time(b *testing.B) {
 	coll := NewBenchmarkCollection()
 	b.ReportAllocs()
 	for range b.N {
-		coll.Add(ptr.Time("key", t))
+		coll.Add(ptr.Time(t))
 	}
 }
 

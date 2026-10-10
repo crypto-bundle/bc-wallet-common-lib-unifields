@@ -36,50 +36,50 @@ import (
 // Unifield re-exported from val for convenience. Consumers can use unifields.String() without importing val/.
 type Unifield = valpkg.Unifield
 
-// String creates a new Unifield with key and string value. Zero-allocation path via val.
-func String(key string, val string) Unifield { return valpkg.String(key, val) }
+// String creates a new Unifield with string value. Zero-allocation path via val.
+func String(val string) Unifield { return valpkg.String(val) }
 
-// Int creates a new Unifield with key and int value. Zero-allocation path via val.
-func Int(key string, val int) Unifield { return valpkg.Int(key, val) }
+// Int creates a new Unifield with int value. Zero-allocation path via val.
+func Int(val int) Unifield { return valpkg.Int(val) }
 
-// Int8 creates a new Unifield with key and int8 value. Zero-allocation path via val.
-func Int8(key string, val int8) Unifield { return valpkg.Int8(key, val) }
+// Int8 creates a new Unifield with int8 value. Zero-allocation path via val.
+func Int8(val int8) Unifield { return valpkg.Int8(val) }
 
-// Int16 creates a new Unifield with key and int16 value. Zero-allocation path via val.
-func Int16(key string, val int16) Unifield { return valpkg.Int16(key, val) }
+// Int16 creates a new Unifield with int16 value. Zero-allocation path via val.
+func Int16(val int16) Unifield { return valpkg.Int16(val) }
 
-// Int32 creates a new Unifield with key and int32 value. Zero-allocation path via val.
-func Int32(key string, val int32) Unifield { return valpkg.Int32(key, val) }
+// Int32 creates a new Unifield with int32 value. Zero-allocation path via val.
+func Int32(val int32) Unifield { return valpkg.Int32(val) }
 
-// Int64 creates a new Unifield with key and int64 value. Zero-allocation path via val.
-func Int64(key string, val int64) Unifield { return valpkg.Int64(key, val) }
+// Int64 creates a new Unifield with int64 value. Zero-allocation path via val.
+func Int64(val int64) Unifield { return valpkg.Int64(val) }
 
-// Uint creates a new Unifield with key and uint value. Zero-allocation path via val.
-func Uint(key string, val uint) Unifield { return valpkg.Uint(key, val) }
+// Uint creates a new Unifield with uint value. Zero-allocation path via val.
+func Uint(val uint) Unifield { return valpkg.Uint(val) }
 
-// Uint8 creates a new Unifield with key and uint8 value. Zero-allocation path via val.
-func Uint8(key string, val uint8) Unifield { return valpkg.Uint8(key, val) }
+// Uint8 creates a new Unifield with uint8 value. Zero-allocation path via val.
+func Uint8(val uint8) Unifield { return valpkg.Uint8(val) }
 
-// Uint16 creates a new Unifield with key and uint16 value. Zero-allocation path via val.
-func Uint16(key string, val uint16) Unifield { return valpkg.Uint16(key, val) }
+// Uint16 creates a new Unifield with uint16 value. Zero-allocation path via val.
+func Uint16(val uint16) Unifield { return valpkg.Uint16(val) }
 
-// Uint32 creates a new Unifield with key and uint32 value. Zero-allocation path via val.
-func Uint32(key string, val uint32) Unifield { return valpkg.Uint32(key, val) }
+// Uint32 creates a new Unifield with uint32 value. Zero-allocation path via val.
+func Uint32(val uint32) Unifield { return valpkg.Uint32(val) }
 
-// Uint64 creates a new Unifield with key and uint64 value. Zero-allocation path via val.
-func Uint64(key string, val uint64) Unifield { return valpkg.Uint64(key, val) }
+// Uint64 creates a new Unifield with uint64 value. Zero-allocation path via val.
+func Uint64(val uint64) Unifield { return valpkg.Uint64(val) }
 
-// Float32 creates a new Unifield with key and float32 value. Zero-allocation path via val.
-func Float32(key string, val float32) Unifield { return valpkg.Float32(key, val) }
+// Float32 creates a new Unifield with float32 value. Zero-allocation path via val.
+func Float32(val float32) Unifield { return valpkg.Float32(val) }
 
-// Float64 creates a new Unifield with key and float64 value. Zero-allocation path via val.
-func Float64(key string, val float64) Unifield { return valpkg.Float64(key, val) }
+// Float64 creates a new Unifield with float64 value. Zero-allocation path via val.
+func Float64(val float64) Unifield { return valpkg.Float64(val) }
 
-// Err creates a new Unifield with key and error value. Zero-allocation path via val.
-func Err(key string, val error) Unifield { return valpkg.Err(key, val) }
+// Err creates a new Unifield with error value. Zero-allocation path via val.
+func Err(val error) Unifield { return valpkg.Err(val) }
 
-// Time creates a new Unifield with key and time.Time value. Zero-allocation path via val.
-func Time(key string, val time.Time) Unifield { return valpkg.Time(key, val) }
+// Time creates a new Unifield with time.Time value. Zero-allocation path via val.
+func Time(val time.Time) Unifield { return valpkg.Time(val) }
 
 // UnifieldStack re-exported from val for convenience. Consumers can use unifields.UnifieldStack
 // without importing val/.
